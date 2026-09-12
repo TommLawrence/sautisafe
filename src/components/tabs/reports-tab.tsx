@@ -14,6 +14,7 @@ import {
   Clock,
   FileAudio,
   ChevronRight,
+  FlaskConical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,7 +48,8 @@ import {
   STATUS_LABELS,
   INJURY_LABELS,
 } from "@/lib/safety";
-import type { Incident, IncidentStatus, Severity } from "@/lib/types";
+import type { BenchmarkResult, Incident, IncidentStatus, Severity } from "@/lib/types";
+import { pct, ms } from "@/lib/metrics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -298,9 +300,12 @@ function ReviewSheet({
 
               {inc.rawTranscript && (
                 <Section title="Transcript" icon={<FileAudio className="h-4 w-4" />}>
-                  <p className="whitespace-pre-wrap rounded-md bg-muted/40 p-3 text-sm leading-relaxed">
-                    {inc.rawTranscript}
-                  </p>
+                  <EditableTranscript
+                    incidentId={inc.id}
+                    text={inc.rawTranscript}
+                    hasAudio={!!inc.audioStoragePath}
+                    onBenchmarked={() => qc.refetchQueries({ queryKey: ["incident", incidentId] })}
+                  />
                 </Section>
               )}
 
@@ -502,6 +507,225 @@ function Field({ label, value, full }: { label: string; value?: string | null; f
     <div className={cn("space-y-0.5", full && "sm:col-span-2")}>
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="text-sm">{value || <span className="text-muted-foreground">—</span>}</p>
+    </div>
+  );
+}
+
+/** Editable transcript + "benchmark this report" action.
+ *  The supervisor can correct the transcript into a verified reference, then
+ *  run all three real STT providers on the report's persisted audio. */
+function EditableTranscript({
+  incidentId,
+  text,
+  hasAudio,
+  onBenchmarked,
+}: {
+  incidentId: string;
+  text: string;
+  hasAudio: boolean;
+  onBenchmarked: () => void;
+}) {
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState(text);
+  const [bench, setBench] = React.useState<BenchmarkResult[] | null>(null);
+  const [aggregate, setAggregate] = React.useState<{
+    avgWer: number | null;
+    avgCer: number | null;
+    avgCriticalTermRecall: number | null;
+    avgLatencyMs: number | null;
+  } | null>(null);
+
+  React.useEffect(() => {
+    setDraft(text);
+  }, [text]);
+
+  const saveMut = useMutation({
+    mutationFn: async (value: string) => {
+      const res = await fetch(`/api/incidents/${incidentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawTranscript: value }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Save failed");
+    },
+    onSuccess: () => {
+      setEditing(false);
+      toast.success("Transcript verified", {
+        description: "It is now the benchmark reference for this report.",
+      });
+      onBenchmarked();
+    },
+    onError: (e: Error) => toast.error("Could not save transcript", { description: e.message }),
+  });
+
+  const benchMut = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/incidents/${incidentId}/benchmark`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Benchmark failed");
+      return data as {
+        results: BenchmarkResult[];
+        aggregateMetrics: typeof aggregate;
+      };
+    },
+    onSuccess: (data) => {
+      setBench(data.results);
+      setAggregate(data.aggregateMetrics ?? null);
+      onBenchmarked();
+      const ok = data.results.filter((r) => r.success).length;
+      toast.success("Benchmark complete", { description: `${ok}/${data.results.length} lanes ran` });
+    },
+    onError: (e: Error) => toast.error("Benchmark failed", { description: e.message }),
+  });
+
+  return (
+    <div className="space-y-3">
+      {editing ? (
+        <div className="space-y-2">
+          <Textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={5}
+            className="resize-y text-sm leading-relaxed"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => saveMut.mutate(draft)}
+              disabled={saveMut.isPending || draft.trim() === text.trim()}
+            >
+              {saveMut.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Save as verified reference
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setDraft(text);
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="whitespace-pre-wrap rounded-md bg-muted/40 p-3 text-sm leading-relaxed">
+          {text}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        {!editing && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setEditing(true)}
+          >
+            Edit transcript
+          </Button>
+        )}
+        <Button
+          size="sm"
+          onClick={() => benchMut.mutate()}
+          disabled={benchMut.isPending || !hasAudio}
+          className={cn(!hasAudio && "cursor-not-allowed opacity-50")}
+          title={hasAudio ? "Run all three providers on this report's audio" : "No audio persisted for this report"}
+        >
+          {benchMut.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FlaskConical className="h-4 w-4" />
+          )}
+          Benchmark this report
+        </Button>
+      </div>
+
+      {!hasAudio && (
+        <p className="text-[11px] text-muted-foreground">
+          No audio is persisted for this report (it was recorded before audio persistence shipped),
+          so it can&apos;t be benchmarked. New reports can be benchmarked.
+        </p>
+      )}
+      {hasAudio && !bench && (
+        <p className="text-[11px] text-muted-foreground">
+          Tip: edit &amp; save the transcript first to make it a verified reference, then run the
+          benchmark for honest WER/CER metrics.
+        </p>
+      )}
+
+      {bench && bench.length > 0 && (
+        <BenchmarkResults results={bench} aggregate={aggregate} />
+      )}
+    </div>
+  );
+}
+
+/** Compact per-report benchmark results table. */
+function BenchmarkResults({
+  results,
+  aggregate,
+}: {
+  results: BenchmarkResult[];
+  aggregate: {
+    avgWer: number | null;
+    avgCer: number | null;
+    avgCriticalTermRecall: number | null;
+    avgLatencyMs: number | null;
+  } | null;
+}) {
+  const label: Record<string, string> = {
+    sahara: "Sahara (Intron)",
+    whisper: "Whisper",
+    gemini: "Gemini",
+    "zai-asr": "z-ai ASR",
+  };
+  return (
+    <div className="space-y-2 rounded-md border border-border p-3">
+      <div className="flex items-center gap-2">
+        <FlaskConical className="h-4 w-4 text-primary" />
+        <h4 className="text-sm font-semibold">Benchmark vs verified transcript</h4>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="py-1.5 pr-3">Provider</th>
+              <th className="py-1.5 pr-3 text-right">WER</th>
+              <th className="py-1.5 pr-3 text-right">CER</th>
+              <th className="py-1.5 pr-3 text-right">Recall</th>
+              <th className="py-1.5 text-right">Latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r) => (
+              <tr key={r.provider} className="border-b border-border/60">
+                <td className="py-1.5 pr-3">
+                  <span className="font-medium">{label[r.provider] ?? r.provider}</span>
+                  {r.error && (
+                    <span className="ml-1 text-xs text-destructive"> — {r.error}</span>
+                  )}
+                </td>
+                <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{pct(r.wer)}</td>
+                <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{pct(r.cer)}</td>
+                <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{pct(r.criticalTermRecall)}</td>
+                <td className="py-1.5 text-right font-mono tabular-nums">{ms(r.latencyMs)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {aggregate && (
+        <p className="text-xs text-muted-foreground">
+          Avg WER {pct(aggregate.avgWer)} · Avg CER {pct(aggregate.avgCer)} · Avg recall{" "}
+          {pct(aggregate.avgCriticalTermRecall)} · Avg latency {ms(aggregate.avgLatencyMs)}
+        </p>
+      )}
     </div>
   );
 }

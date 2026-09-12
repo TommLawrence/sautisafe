@@ -37,6 +37,7 @@ model Incident {
   audioMimeType String?
   audioSizeBytes Int?
   audioDurationSec Int?
+  audioStoragePath String? // server-side path/id to the persisted audio blob (for re-transcription / benchmark)
   rawTranscript String? // primary transcript (the chosen/final one)
 
   // --- Structured safety fields (extracted by the LLM) ---

@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { isIntronConfigured, transcribeWithIntron } from "@/lib/intron";
-import {
-  isWhisperConfigured,
-  transcribeWithWhisper,
-  isGeminiConfigured,
-  transcribeWithGemini,
-} from "@/lib/providers";
-import { computeAllMetrics, DEFAULT_CRITICAL_TERMS } from "@/lib/metrics";
+import { runBenchmarkLanes, type AggregateMetrics } from "@/lib/benchmark-runner";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 import { makeReferenceNo } from "@/lib/safety";
 import type { BenchmarkResult, SpeechProvider } from "@/lib/types";
@@ -86,11 +79,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const results: BenchmarkResult[] = [];
+    let results: BenchmarkResult[];
+    let aggregateMetrics: AggregateMetrics | null;
 
-    // Lane 1 — REAL Intron Voice (Sahara). No silent fallback in benchmark mode.
     if (!(file instanceof File)) {
-      results.push(emptyLane("sahara", "No audio provided for the Sahara lane"));
+      results = [
+        emptyLane("sahara", "No audio provided for the Sahara lane"),
+        emptyLane("whisper", "No audio provided for the Whisper lane"),
+        emptyLane("gemini", "No audio provided for the Gemini lane"),
+      ];
+      aggregateMetrics = null;
     } else if (file.size > MAX_AUDIO_BYTES) {
       return NextResponse.json(
         { error: `Audio too large (max ${Math.round(MAX_AUDIO_BYTES / 1024 / 1024)}MB)` },
@@ -101,116 +99,18 @@ export async function POST(req: Request) {
       if (!ACCEPTED_AUDIO_TYPES.includes(mime) && !ACCEPTED_AUDIO_TYPES.includes(file.type)) {
         return NextResponse.json({ error: `Unsupported audio type: ${mime}` }, { status: 415 });
       }
-      if (!isIntronConfigured()) {
-        results.push(
-          emptyLane(
-            "sahara",
-            "INTRON_API_KEY not set — add it to .env to run the real Sahara lane",
-          ),
-        );
-      } else {
-        const audioBlob = new Blob([new Uint8Array(await file.arrayBuffer())], {
-          type: mime,
-        });
-        try {
-          const r = await transcribeWithIntron({
-            audioBlob,
-            fileName: file.name || "benchmark.wav",
-            language,
-          });
-          const m = computeAllMetrics(referenceTranscript, r.text, {
-            criticalTerms: DEFAULT_CRITICAL_TERMS,
-            latencyMs: r.latencyMs,
-          });
-          results.push({
-            provider: "sahara",
-            text: r.text,
-            wer: m.wer,
-            cer: m.cer,
-            criticalTermRecall: m.criticalTermRecall,
-            latencyMs: m.latencyMs,
-            wordCount: m.wordCount,
-            success: true,
-            simulated: false,
-          });
-        } catch (e) {
-          results.push(emptyLane("sahara", safeErr(e)));
-        }
-      }
-    }
-
-    // Lanes 2 & 3 — REAL Whisper + Gemini (when their API keys are set).
-    // No silent fallback in benchmark mode: if a key is missing the lane
-    // reports "not configured"; if a call errors it reports the real error.
-    if (!(file instanceof File)) {
-      results.push(emptyLane("whisper", "No audio provided for the Whisper lane"));
-      results.push(emptyLane("gemini", "No audio provided for the Gemini lane"));
-    } else {
       const audioBlob = new Blob([new Uint8Array(await file.arrayBuffer())], {
-        type: (form.get("mimeType") as string) || file.type || "audio/wav",
+        type: mime,
       });
-      // Whisper (OpenAI)
-      if (!isWhisperConfigured()) {
-        results.push(emptyLane("whisper", "OPENAI_API_KEY not set — add it to .env to run the real Whisper lane"));
-      } else {
-        try {
-          const r = await transcribeWithWhisper({ audioBlob, fileName: file.name, language });
-          const m = computeAllMetrics(referenceTranscript, r.text, {
-            criticalTerms: DEFAULT_CRITICAL_TERMS,
-            latencyMs: r.latencyMs,
-          });
-          results.push({
-            provider: "whisper",
-            text: r.text,
-            wer: m.wer,
-            cer: m.cer,
-            criticalTermRecall: m.criticalTermRecall,
-            latencyMs: m.latencyMs,
-            wordCount: m.wordCount,
-            success: true,
-            simulated: false,
-          });
-        } catch (e) {
-          results.push(emptyLane("whisper", safeErr(e)));
-        }
-      }
-      // Gemini (gemini-3.8-flash)
-      if (!isGeminiConfigured()) {
-        results.push(emptyLane("gemini", "GEMINI_API_KEY not set — add it to .env to run the real Gemini lane"));
-      } else {
-        try {
-          const r = await transcribeWithGemini({ audioBlob, fileName: file.name, language });
-          const m = computeAllMetrics(referenceTranscript, r.text, {
-            criticalTerms: DEFAULT_CRITICAL_TERMS,
-            latencyMs: r.latencyMs,
-          });
-          results.push({
-            provider: "gemini",
-            text: r.text,
-            wer: m.wer,
-            cer: m.cer,
-            criticalTermRecall: m.criticalTermRecall,
-            latencyMs: m.latencyMs,
-            wordCount: m.wordCount,
-            success: true,
-            simulated: false,
-          });
-        } catch (e) {
-          results.push(emptyLane("gemini", safeErr(e)));
-        }
-      }
+      const out = await runBenchmarkLanes({
+        audioBlob,
+        fileName: file.name || "benchmark.wav",
+        language,
+        referenceTranscript,
+      });
+      results = out.results;
+      aggregateMetrics = out.aggregateMetrics;
     }
-
-    // Aggregate over real (non-simulated) lanes only.
-    const real = results.filter((r) => !r.simulated && r.success);
-    const aggregateMetrics = real.length
-      ? {
-          avgWer: avg(real.map((r) => r.wer)),
-          avgCer: avg(real.map((r) => r.cer)),
-          avgCriticalTermRecall: avg(real.map((r) => r.criticalTermRecall)),
-          avgLatencyMs: avg(real.map((r) => r.latencyMs)),
-        }
-      : null;
 
     const referenceNo = await nextBenchmarkRefNo();
     const run = await db.benchmarkRun.create({
@@ -239,12 +139,6 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-}
-
-function avg(xs: (number | null)[]): number | null {
-  const vals = xs.filter((x): x is number => x != null && !Number.isNaN(x));
-  if (!vals.length) return null;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
 function emptyLane(provider: SpeechProvider, error: string): BenchmarkResult {

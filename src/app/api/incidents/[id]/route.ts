@@ -45,6 +45,7 @@ export async function PATCH(
       reviewedBy?: string;
       status?: IncidentStatus;
       reviewedAt?: string;
+      rawTranscript?: string;
     };
 
     const existing = await db.incident.findUnique({ where: { id } });
@@ -56,9 +57,13 @@ export async function PATCH(
       ? new Date(reviewedAt)
       : new Date();
 
+    const transcriptChanged =
+      rawTranscript !== undefined && rawTranscript.trim() !== (existing.rawTranscript ?? "").trim();
+
     const updated = await db.incident.update({
       where: { id },
       data: {
+        rawTranscript: rawTranscript !== undefined ? rawTranscript : existing.rawTranscript,
         supervisorNotes: supervisorNotes ?? existing.supervisorNotes,
         reviewedBy: reviewedBy ?? existing.reviewedBy,
         reviewedAt: reviewed,
@@ -68,7 +73,13 @@ export async function PATCH(
 
     await audit(
       id,
-      status === "escalated" ? "escalated" : status === "resolved" ? "resolved" : "reviewed",
+      transcriptChanged
+        ? "transcript_verified"
+        : status === "escalated"
+          ? "escalated"
+          : status === "resolved"
+            ? "resolved"
+            : "reviewed",
       status ? `status=${status}` : undefined,
       reviewedBy ?? undefined,
     );

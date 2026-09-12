@@ -20,6 +20,7 @@ export interface DraftReport {
   audioMimeType: string;
   audioSizeBytes: number;
   audioDurationSec: number;
+  audioStoragePath: string | null;
   transcript: string | null;
   transcriptLatencyMs: number | null;
   transcriptProvider: string | null;
@@ -134,6 +135,7 @@ export async function retryDraft(draft: DraftReport): Promise<RetryOutcome> {
       audioMimeType: draft.audioMimeType,
       audioSizeBytes: draft.audioSizeBytes,
       audioDurationSec: draft.audioDurationSec,
+      audioStoragePath: draft.audioStoragePath,
       transcript: draft.transcript,
       transcriptLatencyMs: draft.transcriptLatencyMs,
       transcriptProvider: draft.transcriptProvider,

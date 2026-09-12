@@ -4,6 +4,7 @@ import {
   isIntronConfigured,
   transcribeWithIntron,
 } from "@/lib/intron";
+import { saveAudio } from "@/lib/audio-storage";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 
 export const runtime = "nodejs";
@@ -42,9 +43,21 @@ export async function POST(req: Request) {
     }
     const language = (form.get("language") as string) || "lg";
 
-    const audioBlob = new Blob([new Uint8Array(await file.arrayBuffer())], {
-      type: declaredMime,
-    });
+    const audioBytes = new Uint8Array(await file.arrayBuffer());
+    const audioBlob = new Blob([audioBytes], { type: declaredMime });
+
+    // Persist the audio so the benchmark can re-transcribe it with all
+    // providers later (the report flow only stores transcript + metadata
+    // otherwise). Production uses Convex file storage.
+    let audioRef: string | null = null;
+    try {
+      audioRef = await saveAudio(audioBytes, {
+        mimeType: declaredMime,
+        fileName: file.name,
+      });
+    } catch (e) {
+      console.error("[/api/transcribe] audio persist failed", e);
+    }
 
     // 1) Real Intron (Sahara) — preferred.
     if (isIntronConfigured()) {
@@ -61,6 +74,7 @@ export async function POST(req: Request) {
           provider: "sahara",
           via: result.via,
           language,
+          audioRef,
           wordCount: result.text.split(/\s+/).filter(Boolean).length,
         });
       } catch (e) {
@@ -81,6 +95,7 @@ export async function POST(req: Request) {
       provider: "zai-asr",
       via: isIntronConfigured() ? "fallback-after-intron-error" : "no-intron-key",
       language,
+      audioRef,
       wordCount: text.split(/\s+/).filter(Boolean).length,
     });
   } catch (e) {

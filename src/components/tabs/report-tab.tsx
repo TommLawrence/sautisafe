@@ -50,6 +50,7 @@ async function postTranscribe(audio: CapturedAudio, language: string) {
     provider: string;
     via?: string;
     language?: string;
+    audioRef?: string | null;
   };
 }
 
@@ -76,6 +77,7 @@ export function ReportTab() {
         transcriptLatencyMs: data.latencyMs,
         transcriptProvider: data.provider,
         transcriptVia: data.via ?? null,
+        audioStoragePath: data.audioRef ?? null,
       });
       const who =
         data.provider === "sahara"
@@ -130,6 +132,7 @@ export function ReportTab() {
         audioMimeType: captured?.mimeType ?? draft.audioMimeType,
         audioSizeBytes: captured?.sizeBytes ?? draft.audioSizeBytes,
         audioDurationSec: captured?.durationSec ?? draft.audioDurationSec,
+        audioStoragePath: draft.audioStoragePath ?? null,
         transcript: draft.transcript,
         transcriptLatencyMs: draft.transcriptLatencyMs,
         transcriptProvider: draft.transcriptProvider ?? "zai-asr",
@@ -171,6 +174,7 @@ export function ReportTab() {
             audioMimeType: captured.mimeType,
             audioSizeBytes: captured.sizeBytes,
             audioDurationSec: captured.durationSec,
+            audioStoragePath: draft.audioStoragePath ?? null,
             transcript: draft.transcript,
             transcriptLatencyMs: draft.transcriptLatencyMs ?? null,
             transcriptProvider: draft.transcriptProvider ?? null,
@@ -315,6 +319,7 @@ export function ReportTab() {
                 audioMimeType: undefined,
                 audioSizeBytes: undefined,
                 audioDurationSec: undefined,
+                audioStoragePath: undefined,
                 transcript: undefined,
                 transcriptLatencyMs: undefined,
                 transcriptProvider: undefined,

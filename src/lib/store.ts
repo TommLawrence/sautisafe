@@ -12,6 +12,7 @@ interface ReportDraft {
   audioMimeType?: string | null;
   audioSizeBytes?: number | null;
   audioDurationSec?: number | null;
+  audioStoragePath?: string | null;
   transcript?: string | null;
   transcriptLatencyMs?: number | null;
   /** Which STT provider actually ran (e.g. "sahara" | "zai-asr"). */

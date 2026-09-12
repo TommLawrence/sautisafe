@@ -321,3 +321,24 @@ Work Log:
 
 Stage Summary:
 - All 4 mobile issues fixed with standard responsive patterns (truncate+shrink-0, chevron+hint affordance, flex-col→sm:flex-row stack, min-h-0 on flex-1 ScrollArea). The app stays mobile-first. No cron job.
+
+---
+Task ID: 29 (benchmark our own report + audio persistence)
+Agent: Z.ai Code (main orchestrator)
+Task: Allow running the multi-model benchmark on an actual incident report (real results), which required persisting the report's audio so all three providers can re-transcribe it.
+
+Work Log:
+- Added `audioStoragePath` to the Incident Prisma model + db:push. Created db/uploads/ (gitignored) for persisted audio (production uses Convex file storage).
+- src/lib/audio-storage.ts (server): saveAudio(bytes, {mimeType,fileName}) → writes to db/uploads/<uuid>.<ext>, returns the storage id; loadAudio(path) → Buffer (with path-traversal guard); deleteAudio(path). 
+- /api/transcribe: now persists the received audio via saveAudio + returns `audioRef` in the response (alongside the transcript). The report flow stores audioRef on the draft → sends it to /api/incidents, which stores it as audioStoragePath. Threaded audioStoragePath through the store, the report-tab save + onError offline-draft path, and the offline-draft retry body.
+- src/lib/benchmark-runner.ts (server, shared): runBenchmarkLanes({audioBlob, fileName, language, referenceTranscript}) runs all three REAL providers (Sahara/Intron, Whisper/OpenAI, Gemini/gemini-3.8-flash) with NO silent fallback (missing key → honest "not configured" lane; call error → real error lane), computes WER/CER/critical-term-recall per lane + aggregate. languageForBenchmark() maps the incident's detectedLanguage back to an Intron code.
+- Refactored /api/benchmark to use runBenchmarkLanes (removed ~60 lines of inline lane duplication; behaviour unchanged: file validation + scenario language mapping stay, the lane-running is delegated to the helper).
+- NEW /api/incidents/[id]/benchmark POST: loads the incident's persisted audio + transcript (the reference), runs runBenchmarkLanes, saves Whisper+Gemini as non-primary Transcript rows on the incident (Sahara keeps its primary; prior benchmark transcripts for whisper/gemini are deleted so re-running doesn't duplicate), creates a BenchmarkRun, audits "benchmarked", returns the lane results + aggregate + language. Returns 404 if no audio is persisted (older reports recorded before this shipped) and 400 if there's no transcript to use as the reference.
+- Extended PATCH /api/incidents/[id] to accept `rawTranscript` so the supervisor can correct the transcript into a verified reference (audited as "transcript_verified" when it changes).
+- Review drawer: replaced the read-only transcript with an EditableTranscript component — an "Edit transcript" toggle (textarea + "Save as verified reference" → PATCH rawTranscript) and a "Benchmark this report" button that calls the new route + renders a compact BenchmarkResults table (provider/WER/CER/Recall/Latency + aggregate). Disabled with an explanation when no audio is persisted.
+
+Stage Summary:
+- Verified end-to-end with curl: transcribe returns audioRef (audio persisted to db/uploads/<uuid>.wav); creating an incident with audioStoragePath stores it; POST /api/incidents/[id]/benchmark loads the persisted audio + runs all 3 real providers → returns {runId, referenceNo, results, aggregateMetrics, language}. With the live Intron key the Sahara lane ran (WER computed vs the reference); Whisper showed the honest "OPENAI_API_KEY not set" lane; Gemini returned a REAL API error: "User location is not supported for the API use" (HTTP 400) — the Gemini key is VALID, the Gemini API geo-blocks this sandbox's region (it will work on Vercel in a supported region). No silent fallback — every lane surfaces its real result.
+- agent-browser confirms the review drawer shows the "Edit transcript" + "Benchmark this report" controls + the verified-reference tip.
+- lint clean; dev server restarted (new Prisma client). No cron job.
+- Open: the Gemini lane geo-blocks the sandbox region (valid key, region not supported) — will resolve on a Vercel deployment in a supported region. Whisper lane stays "not configured" until an OPENAI_API_KEY is added.

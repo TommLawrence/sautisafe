@@ -67,3 +67,6 @@ tool-results/
 
 # agent scratch space
 /agent-ctx/
+
+# persisted audio uploads (test env; production uses Convex file storage)
+/db/uploads/

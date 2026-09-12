@@ -24,6 +24,7 @@ export interface Incident {
   audioMimeType?: string | null;
   audioSizeBytes?: number | null;
   audioDurationSec?: number | null;
+  audioStoragePath?: string | null;
   rawTranscript?: string | null;
   location?: string | null;
   equipment?: string | null;
