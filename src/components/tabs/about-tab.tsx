@@ -1,4 +1,5 @@
 "use client";
+import * as React from "react";
 import {
   ShieldCheck,
   Mic,
@@ -118,6 +119,46 @@ export function AboutTab() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <ScrollText className="h-5 w-5 text-primary" />
+            Dataset &amp; provider declaration
+          </CardTitle>
+          <CardDescription>
+            Per the organisers&apos; guidance, any non-provided dataset or provider must be
+            declared in the submission. This is that declaration.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            <strong>Speech provider (primary):</strong> Intron Voice (the Sahara Speech API)
+            via <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">/file/v1/upload/sync</code>{" "}
+            with async-poll fallback. Code-switched Luganda–English (<code className="font-mono">lg</code>) and
+            Swahili–English (<code className="font-mono">sw</code>) models.
+          </p>
+          <p>
+            <strong>Reliability fallback:</strong> if the Intron key is not set or a call
+            errors, product-mode transcription transparently falls back to the z-ai ASR
+            (clearly tagged on every transcript). Benchmark mode never substitutes — a
+            failed Sahara lane reports its real error.
+          </p>
+          <p>
+            <strong>Benchmark dataset:</strong> SautiSafe uses a small, consented, original
+            set of ~20–40 English–Luganda/Swahili industrial scenarios across clean, noisy,
+            accented, rapid, and heavy-code-switch difficulty groups — not the organisers&apos;
+            evaluation dataset. Each sample&apos;s reference transcript is manually verified.
+            This is a small evaluation sample, explicitly not representative of every
+            Ugandan or East African worker.
+          </p>
+          <p>
+            <strong>No external datasets are bundled.</strong> The four sample scenarios
+            shipped in the Benchmark tab are original, consented, and contain no real
+            worker or company names.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5 text-primary" />
             Architecture &amp; data ownership
           </CardTitle>
@@ -126,10 +167,12 @@ export function AboutTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <ProviderStatus />
           <p>
             For testing, the backend sits here in the Z cloud: Next.js API routes call the
-            z-ai ASR (as a Sahara proxy) and the LLM for structured extraction. Audio is
-            kept linked to the incident record for verification.
+            real Intron Voice (Sahara) STT, with the z-ai ASR as a transparent fallback, and
+            the LLM for structured extraction. Audio is kept linked to the incident record
+            for verification.
           </p>
           <p>
             The production backend is already written in the{" "}
@@ -167,3 +210,63 @@ const NEVER_DO = [
   "Never include real worker or company names in benchmark material.",
   "Never expose speech-provider API keys to the browser.",
 ];
+
+/** Live provider-config indicator fetched from /api/status. */
+function ProviderStatus() {
+  const [status, setStatus] = React.useState<{
+    intron?: { configured: boolean; baseUrl: string };
+    pwa?: boolean;
+    offlineDrafts?: boolean;
+  } | null>(null);
+  React.useEffect(() => {
+    fetch("/api/status")
+      .then((r) => r.json())
+      .then(setStatus)
+      .catch(() => setStatus(null));
+  }, []);
+  if (!status) return null;
+  const intronOn = status.intron?.configured;
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Pill
+        ok={intronOn}
+        label="Intron (Sahara)"
+        okText={intronOn ? "configured" : "no key — set INTRON_API_KEY"}
+      />
+      <Pill ok label="z-ai ASR" okText="fallback ready" />
+      <Pill ok={!!status.pwa} label="PWA" okText={status.pwa ? "installable" : "off"} />
+      <Pill
+        ok={!!status.offlineDrafts}
+        label="Offline drafts"
+        okText={status.offlineDrafts ? "on" : "off"}
+      />
+    </div>
+  );
+}
+
+function Pill({
+  ok,
+  label,
+  okText,
+}: {
+  ok: boolean | undefined;
+  label: string;
+  okText: string;
+}) {
+  const on = !!ok;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
+        on
+          ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          : "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+      }`}
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${on ? "bg-emerald-500" : "bg-amber-500"}`}
+      />
+      <span className="font-semibold">{label}</span>
+      <span className="opacity-70">· {okText}</span>
+    </span>
+  );
+}

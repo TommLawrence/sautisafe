@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +20,20 @@ export const metadata: Metadata = {
   title: "SautiSafe — Safer reporting, in the language workers actually speak",
   description:
     "Code-switched voice reporting assistant for industrial safety incidents and near misses. Transcribes Luganda/Swahili/English, extracts structured safety fields, asks focused follow-ups, flags urgent risks, and benchmarks speech models.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "SautiSafe",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   keywords: [
     "SautiSafe",
     "industrial safety",
@@ -53,6 +68,8 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -74,6 +91,7 @@ export default function RootLayout({
           <QueryProvider>
             {children}
             <Toaster richColors position="top-center" />
+            <ServiceWorkerRegister />
           </QueryProvider>
         </ThemeProvider>
       </body>

@@ -1,0 +1,26 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="oklch(0.42 0.09 178)" />
+      <stop offset="100%" stop-color="oklch(0.32 0.07 178)" />
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="oklch(0.96 0.02 178)" />
+      <stop offset="100%" stop-color="oklch(0.86 0.04 178)" />
+    </linearGradient>
+  </defs>
+  <!-- full-bleed background (maskable safe) -->
+  <rect width="512" height="512" fill="url(#bg)" />
+  <!-- shield, centered, ~62% for maskable safe zone -->
+  <path d="M256 96 128 144v130c0 92 66 174 128 222 62-48 128-130 128-222V144L256 96Z"
+    fill="url(#shield)" stroke="oklch(0.28 0.06 178)" stroke-width="6" />
+  <!-- soundwave bars (teal on the light shield) -->
+  <g fill="oklch(0.4 0.09 178)">
+    <rect x="176" y="248" width="24" height="48" rx="12" opacity="0.7" />
+    <rect x="216" y="222" width="24" height="100" rx="12" />
+    <rect x="256" y="190" width="24" height="164" rx="12" />
+    <rect x="296" y="230" width="24" height="84" rx="12" opacity="0.7" />
+  </g>
+  <!-- amber caution dot -->
+  <circle cx="256" cy="350" r="22" fill="oklch(0.78 0.15 70)" />
+</svg>

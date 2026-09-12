@@ -155,7 +155,49 @@ export function ReportTab() {
       setCaptured(null);
       setTab("reports");
     },
-    onError: (e: Error) => toast.error("Could not save report", { description: e.message }),
+    onError: async (e: Error) => {
+      // If the submit failed (offline, network, or server error), persist the
+      // complete report — including the audio Blob — to the offline draft
+      // queue so it survives refresh and retries when connectivity returns.
+      if (captured && draft.transcript) {
+        try {
+          const id = crypto.randomUUID();
+          const { putDraft, notifyDraftsChanged } = await import("@/lib/drafts-store");
+          await putDraft({
+            id,
+            audioBlob: captured.wavBlob,
+            audioFileName: captured.fileName,
+            audioMimeType: captured.mimeType,
+            audioSizeBytes: captured.sizeBytes,
+            audioDurationSec: captured.durationSec,
+            transcript: draft.transcript,
+            transcriptLatencyMs: draft.transcriptLatencyMs ?? null,
+            transcriptProvider: draft.transcriptProvider ?? null,
+            language: draft.language,
+            fields: { ...draft.fields },
+            followUps: [...draft.followUps],
+            urgentTags: [...draft.urgentTags],
+            consentGiven: draft.consentGiven,
+            detectedLanguage: draft.extracted?.detectedLanguage ?? null,
+            status: "queued",
+            error: e.message,
+            createdAt: Date.now(),
+          });
+          notifyDraftsChanged();
+          toast.warning("Saved offline", {
+            description: "The report will submit automatically when you're back online.",
+            duration: 6000,
+          });
+          resetDraft();
+          setCaptured(null);
+          setTab("reports");
+          return;
+        } catch {
+          /* fall through to the normal error toast */
+        }
+      }
+      toast.error("Could not save report", { description: e.message });
+    },
   });
 
   function handleAnalyze() {
