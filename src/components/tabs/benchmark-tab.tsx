@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SAMPLE_SCENARIOS } from "@/lib/safety";
+import { SUPPORTED_LANGUAGES } from "@/lib/languages";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES, formatBytes } from "@/lib/audio-utils";
 import { pct, ms } from "@/lib/metrics";
 import type { BenchmarkResult } from "@/lib/types";
@@ -43,13 +44,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const PROVIDER_COLORS: Record<string, string> = {
-  "zai-asr": "oklch(0.55 0.1 178)",
+  sahara: "oklch(0.55 0.1 178)",
+  "zai-asr": "oklch(0.6 0.09 178)",
   whisper: "oklch(0.75 0.15 70)",
   gemini: "oklch(0.6 0.2 25)",
 };
 
 const PROVIDER_LABEL: Record<string, string> = {
-  "zai-asr": "Sahara proxy (z-ai ASR)",
+  sahara: "Sahara (Intron Voice)",
+  "zai-asr": "z-ai ASR (fallback)",
   whisper: "Whisper",
   gemini: "Gemini",
 };
@@ -59,6 +62,7 @@ export function BenchmarkTab() {
   const [audioFile, setAudioFile] = React.useState<File | null>(null);
   const [reference, setReference] = React.useState("");
   const [scenarioId, setScenarioId] = React.useState<string>("");
+  const [language, setLanguage] = React.useState<string>("lg");
   const [dragOver, setDragOver] = React.useState(false);
 
   const runMut = useMutation({
@@ -69,6 +73,7 @@ export function BenchmarkTab() {
       if (audioFile) fd.append("audio", audioFile);
       fd.append("referenceTranscript", reference);
       if (scenarioId) fd.append("scenario", scenarioId);
+      fd.append("language", language);
       const res = await fetch("/api/benchmark", { method: "POST", body: fd });
       if (!res.ok) throw new Error((await res.json()).error || "Benchmark failed");
       return (await res.json()) as {
@@ -89,7 +94,12 @@ export function BenchmarkTab() {
   function applyScenario(id: string) {
     setScenarioId(id);
     const s = SAMPLE_SCENARIOS.find((x) => x.id === id);
-    if (s) setReference(s.referenceText);
+    if (s) {
+      setReference(s.referenceText);
+      // match the Sahara lane language to the scenario's code-switch profile
+      const langFor: Record<string, string> = { s1: "lg", s2: "en", s3: "sw", s4: "en" };
+      if (langFor[id]) setLanguage(langFor[id]);
+    }
   }
 
   const results = runMut.data?.results ?? [];
@@ -111,10 +121,14 @@ export function BenchmarkTab() {
             Benchmark runner
           </CardTitle>
           <CardDescription>
-            Compare speech models on the same audio against a verified reference transcript.
-            In this test environment the real z-ai ASR runs as the Sahara proxy; the other
-            two lanes are clearly-labelled simulations that demonstrate the metrics engine.
-            In production, Convex actions call the real providers.
+            Compare speech models on the same audio against a verified reference
+            transcript. The Sahara lane calls the real Intron Voice API (set
+            <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">INTRON_API_KEY</code>
+            in <code className="rounded bg-muted px-1 font-mono text-[11px]">.env</code>
+            to enable it); without a key it reports an honest “not configured”
+            error and is never silently substituted. Whisper &amp; Gemini lanes are
+            clearly-labelled simulations in this test env — the Convex migration
+            wires them to the real providers.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -181,6 +195,24 @@ export function BenchmarkTab() {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Reference transcripts must be manually verified.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Sahara language</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_LANGUAGES.map((l) => (
+                      <SelectItem key={l.code} value={l.code}>
+                        {l.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  The language the Sahara (Intron) model transcribes in.
                 </p>
               </div>
             </div>

@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import { transcribeAudio } from "@/lib/zai";
+import {
+  isIntronConfigured,
+  transcribeWithIntron,
+} from "@/lib/intron";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /** POST /api/transcribe
- *  Receives an audio file (FormData), transcribes it with the Z cloud ASR
- *  (acting as the Sahara proxy for testing), and returns { text, latencyMs }.
+ *  Body (FormData): audio, mimeType?, language?  (language defaults to "lg")
+ *
+ *  Uses the REAL Intron Voice (Sahara) STT when INTRON_API_KEY is set, via the
+ *  sync endpoint with a 503/400 → async-poll fallback. When no key is present
+ *  in this test environment it transparently falls back to the z-ai ASR proxy
+ *  (the response always tells the client which provider ran).
  *  Mirrors convex/actions/transcribe.ts → transcribeWithProvider("sahara"). */
 export async function POST(req: Request) {
   try {
@@ -32,14 +40,47 @@ export async function POST(req: Request) {
         { status: 415 },
       );
     }
-    const bytes = Buffer.from(await file.arrayBuffer());
+    const language = (form.get("language") as string) || "lg";
+
+    const audioBlob = new Blob([new Uint8Array(await file.arrayBuffer())], {
+      type: declaredMime,
+    });
+
+    // 1) Real Intron (Sahara) — preferred.
+    if (isIntronConfigured()) {
+      try {
+        const result = await transcribeWithIntron({
+          audioBlob,
+          fileName: file.name || "recording.wav",
+          language,
+        });
+        return NextResponse.json({
+          text: result.text,
+          latencyMs: result.latencyMs,
+          durationSec: result.durationSec,
+          provider: "sahara",
+          via: result.via,
+          language,
+          wordCount: result.text.split(/\s+/).filter(Boolean).length,
+        });
+      } catch (e) {
+        // In product mode a transparent retry on another provider is allowed.
+        // Log and fall through to the z-ai ASR proxy, but tag it clearly so the
+        // client/supervisor knows the Sahara lane did not run.
+        console.error("[/api/transcribe] Intron failed, falling back to z-ai ASR:", safeErr(e));
+      }
+    }
+
+    // 2) Fallback (test env with no Intron key, or Intron error): z-ai ASR.
+    const bytes = Buffer.from(await audioBlob.arrayBuffer());
     const base64 = bytes.toString("base64");
-
     const { text, latencyMs } = await transcribeAudio(base64);
-
     return NextResponse.json({
       text,
       latencyMs,
+      provider: "zai-asr",
+      via: isIntronConfigured() ? "fallback-after-intron-error" : "no-intron-key",
+      language,
       wordCount: text.split(/\s+/).filter(Boolean).length,
     });
   } catch (e) {

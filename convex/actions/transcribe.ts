@@ -53,9 +53,13 @@ export interface BenchmarkResult {
  * Mirrors: live Next.js `POST /api/transcribe/:provider`.
  *
  * Supported providers:
- *   * "sahara"  — POST to SAHARA_TRANSCRIPTION_URL with Authorization: Bearer
- *                 SAHARA_API_KEY; expects JSON { transcript|text, language?,
- *                 durationMs?, confidence? }.
+ *   * "sahara"  — Intron Voice (https://infer.voice.intron.io). POST
+ *                 /file/v1/upload/sync (multipart: audio_file_name,
+ *                 audio_file_blob, use_language_asr_input, use_category,
+ *                 use_disable_llm_corrections); on HTTP 503 it polls
+ *                 GET /file/v1/status/{file_id}; on HTTP 400 (audio too
+ *                 long for sync) it re-uploads via /file/v1/upload and
+ *                 polls. Needs INTRON_API_KEY (alias SAHARA_API_KEY).
  *   * "whisper" — OpenAI Whisper (https://api.openai.com/v1/audio/transcriptions)
  *                 with verbose_json response; needs OPENAI_API_KEY.
  *   * "gemini"  — Google Gemini `generateContent` with inline audio data;
@@ -74,18 +78,23 @@ export const transcribeWithProvider = action({
   args: {
     audioStorageId: v.id("_storage"),
     provider: v.string(),
+    language: v.optional(v.string()),
   },
-  handler: async (ctx, { audioStorageId, provider }): Promise<TranscriptionResult> => {
+  handler: async (
+    ctx,
+    { audioStorageId, provider, language },
+  ): Promise<TranscriptionResult> => {
     // Fetch the audio blob once, before switching on provider. This throws
     // cleanly if the blob doesn't exist.
     const blob = await ctx.storage.get(audioStorageId);
     if (!blob) {
       throw new Error(`Audio blob ${audioStorageId} not found in storage.`);
     }
+    const lang = language ?? "lg";
 
     switch (provider) {
       case "sahara":
-        return await transcribeSahara(blob);
+        return await transcribeSahara(blob, lang);
       case "whisper":
         return await transcribeWhisper(blob);
       case "gemini":
@@ -129,10 +138,12 @@ export const runBenchmark = action({
     audioStorageId: v.id("_storage"),
     referenceTranscript: v.string(),
     providers: v.array(v.string()),
+    language: v.optional(v.string()),
     criticalTerms: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args): Promise<BenchmarkResult[]> => {
     const results: BenchmarkResult[] = [];
+    const lang = args.language ?? "lg";
 
     for (const provider of args.providers) {
       try {
@@ -141,6 +152,7 @@ export const runBenchmark = action({
         const tr = await ctx.runAction(api.actions.transcribe.transcribeWithProvider, {
           audioStorageId: args.audioStorageId,
           provider,
+          language: lang,
         });
 
         const metrics = computeAllMetrics(args.referenceTranscript, tr.text, {
@@ -185,54 +197,158 @@ export const runBenchmark = action({
 // ──────────────────────────────────────────────────────────────────────────
 
 /**
- * Sahara ASR — internal/private provider, configured by the deployment.
+ * Sahara ASR — the Intron Voice API (https://infer.voice.intron.io).
  *
- * POST multipart/form-data (field name `audio`) to SAHARA_TRANSCRIPTION_URL
- * with `Authorization: Bearer ${SAHARA_API_KEY}`. Response is JSON. We
- * accept several common field names for the transcript so we tolerate
- * minor schema drift in the Sahara service.
+ * Flow (mirrors the live src/lib/intron.ts):
+ *  1. POST /file/v1/upload/sync (multipart: audio_file_name, audio_file_blob,
+ *     use_language_asr_input=<lang>, use_category=file_category_general,
+ *     use_disable_llm_corrections=TRUE). 200 → return data.audio_transcript.
+ *  2. 503 (sync timeout) → the body carries data.file_id; poll
+ *     GET /file/v1/status/{file_id} until FILE_TRANSCRIBED.
+ *  3. 400 (audio too long for sync) → re-upload via /file/v1/upload and poll.
+ *
+ * Needs INTRON_API_KEY (SAHARA_API_KEY alias) and optionally INTRON_BASE_URL
+ * (SAHARA_TRANSCRIPTION_URL alias, for on-prem/relay). No silent fallback:
+ * if the key is missing the action throws a clear error.
  */
-async function transcribeSahara(blob: Blob): Promise<TranscriptionResult> {
-  const url = process.env.SAHARA_TRANSCRIPTION_URL;
-  const key = process.env.SAHARA_API_KEY;
-  if (!url || !key) {
+async function transcribeSahara(
+  blob: Blob,
+  language: string,
+): Promise<TranscriptionResult> {
+  const base = (
+    process.env.INTRON_BASE_URL ||
+    process.env.SAHARA_TRANSCRIPTION_URL ||
+    "https://infer.voice.intron.io"
+  ).replace(/\/$/, "");
+  const key = process.env.INTRON_API_KEY || process.env.SAHARA_API_KEY;
+  if (!key) {
     throw new Error(
-      "Sahara transcription provider not configured: set SAHARA_TRANSCRIPTION_URL and SAHARA_API_KEY.",
+      "Sahara (Intron) not configured: set INTRON_API_KEY (and optionally INTRON_BASE_URL).",
     );
   }
 
   const start = Date.now();
-  try {
+  const fileName = "sautisafe.wav";
+  const buildForm = () => {
     const form = new FormData();
-    form.append("audio", blob, "audio.webm");
+    form.append("audio_file_name", fileName);
+    form.append("audio_file_blob", blob, fileName);
+    form.append("use_language_asr_input", language);
+    // SautiSafe tuning: general category (default is telehealth), and disable
+    // Intron's LLM "corrections" so code-switched technical terms survive
+    // verbatim (we run our own safety extraction separately).
+    form.append("use_category", "file_category_general");
+    form.append("use_disable_llm_corrections", "TRUE");
+    return form;
+  };
 
-    const res = await fetch(url, {
+  try {
+    const syncRes = await fetch(`${base}/file/v1/upload/sync`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}` },
-      body: form,
+      body: buildForm(),
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new Error(`Sahara API error HTTP ${res.status}: ${truncate(body)}`);
+    if (syncRes.ok) {
+      const j = (await syncRes.json()) as { data?: IntronStatusData };
+      const d = j?.data;
+      return {
+        text: d?.audio_transcript ?? "",
+        language: d?.use_language_asr_input ?? language,
+        durationMs: d?.processed_audio_duration_in_seconds
+          ? Math.round(d.processed_audio_duration_in_seconds * 1000)
+          : undefined,
+        latencyMs: Date.now() - start,
+      };
     }
 
-    const data = (await res.json()) as Record<string, unknown>;
-    const text = pickString(data, ["transcript", "text", "result"]);
-    if (!text) {
-      throw new Error("Sahara API returned no transcript text.");
+    // 503 — sync timed out but a file_id was queued: poll it (no fallback).
+    if (syncRes.status === 503) {
+      const body = (await syncRes.json().catch(() => null)) as { data?: IntronStatusData } | null;
+      const fileId = body?.data?.file_id;
+      if (fileId) {
+        return await pollIntronStatus(fileId, base, key, language, start);
+      }
+      throw new Error("Sahara sync timed out (503) but no file_id was returned.");
     }
 
-    return {
-      text,
-      language: pickOptionalString(data, ["language", "lang"]),
-      durationMs: pickOptionalNumber(data, ["durationMs", "duration_ms", "durationMs"]),
-      latencyMs: Date.now() - start,
-      confidence: pickOptionalNumber(data, ["confidence", "score"]),
-    };
+    // 400 — audio too long for sync: re-upload async and poll.
+    if (syncRes.status === 400) {
+      const asyncRes = await fetch(`${base}/file/v1/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: buildForm(),
+      });
+      if (!asyncRes.ok) {
+        const t = await asyncRes.text().catch(() => "");
+        throw new Error(`Sahara async upload failed (HTTP ${asyncRes.status}): ${truncate(t)}`);
+      }
+      const j = (await asyncRes.json()) as { data?: IntronStatusData };
+      const fileId = j?.data?.file_id;
+      if (!fileId) {
+        throw new Error("Sahara async upload returned no file_id.");
+      }
+      return await pollIntronStatus(fileId, base, key, language, start);
+    }
+
+    const body = await syncRes.text().catch(() => "");
+    throw new Error(`Sahara sync STT failed (HTTP ${syncRes.status}): ${truncate(body)}`);
   } catch (err) {
     throw new Error(`Sahara transcription failed: ${safeErrorMessage(err)}`);
   }
+}
+
+/** Poll GET /file/v1/status/{file_id} until a terminal status. */
+async function pollIntronStatus(
+  fileId: string,
+  base: string,
+  key: string,
+  language: string,
+  start: number,
+): Promise<TranscriptionResult> {
+  const deadline = Date.now() + 100_000;
+  let delay = 1500;
+  let lastStatus: string | undefined;
+  while (Date.now() < deadline) {
+    const res = await fetch(`${base}/file/v1/status/${fileId}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) {
+      throw new Error(`Sahara status poll failed (HTTP ${res.status})`);
+    }
+    const j = (await res.json()) as { data?: IntronStatusData };
+    const d = j?.data;
+    const status = d?.processing_status;
+    lastStatus = status;
+    if (status === "FILE_TRANSCRIBED") {
+      return {
+        text: d?.audio_transcript ?? "",
+        language: d?.use_language_asr_input ?? language,
+        durationMs: d?.processed_audio_duration_in_seconds
+          ? Math.round(d.processed_audio_duration_in_seconds * 1000)
+          : undefined,
+        latencyMs: Date.now() - start,
+      };
+    }
+    if (status === "FILE_PROCESSING_FAILED") {
+      throw new Error("Sahara transcription failed (FILE_PROCESSING_FAILED)");
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 1.4, 5000);
+  }
+  throw new Error(
+    `Sahara transcription did not complete within the timeout (last status: ${lastStatus ?? "unknown"})`,
+  );
+}
+
+/** Shape of the Intron status/result response `data` field. */
+interface IntronStatusData {
+  file_id?: string;
+  processing_status?: string;
+  audio_transcript?: string;
+  processed_audio_duration_in_seconds?: number | null;
+  audio_file_name?: string;
+  use_language_asr_input?: string;
 }
 
 /**

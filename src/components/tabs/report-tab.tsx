@@ -32,17 +32,24 @@ import { AudioRecorder, type CapturedAudio } from "@/components/audio-recorder";
 import { UrgentBanner } from "@/components/urgent-banner";
 import { useAppStore } from "@/lib/store";
 import { detectUrgentTags, INJURY_LABELS, INJURY_STATUSES, SEVERITIES, SEVERITY_LABELS } from "@/lib/safety";
-import { formatBytes } from "@/lib/audio-utils";
+import { SUPPORTED_LANGUAGES, languageLabel } from "@/lib/languages";
 import type { ExtractedFields, InjuryStatus, Severity } from "@/lib/types";
 import { toast } from "sonner";
 
-async function postTranscribe(audio: CapturedAudio) {
+async function postTranscribe(audio: CapturedAudio, language: string) {
   const fd = new FormData();
   fd.append("audio", audio.wavBlob, audio.fileName);
   fd.append("mimeType", audio.mimeType);
+  fd.append("language", language);
   const res = await fetch("/api/transcribe", { method: "POST", body: fd });
   if (!res.ok) throw new Error((await res.json()).error || "Transcription failed");
-  return (await res.json()) as { text: string; latencyMs: number };
+  return (await res.json()) as {
+    text: string;
+    latencyMs: number;
+    provider: string;
+    via?: string;
+    language?: string;
+  };
 }
 
 async function postExtract(transcript: string) {
@@ -61,11 +68,22 @@ export function ReportTab() {
   const [captured, setCaptured] = React.useState<CapturedAudio | null>(null);
 
   const transcribeMut = useMutation({
-    mutationFn: postTranscribe,
+    mutationFn: (audio: CapturedAudio) => postTranscribe(audio, draft.language),
     onSuccess: (data) => {
-      setDraft({ transcript: data.text, transcriptLatencyMs: data.latencyMs });
+      setDraft({
+        transcript: data.text,
+        transcriptLatencyMs: data.latencyMs,
+        transcriptProvider: data.provider,
+        transcriptVia: data.via ?? null,
+      });
+      const who =
+        data.provider === "sahara"
+          ? `Sahara (Intron)${data.via === "sync-503-then-poll" || data.via === "async-poll" ? " · async poll" : ""}`
+          : data.via === "no-intron-key"
+            ? "z-ai ASR (no Intron key)"
+            : "z-ai ASR (fallback)";
       toast.success("Transcription complete", {
-        description: `Sahara (test) · ${data.latencyMs}ms`,
+        description: `${who} · ${data.latencyMs}ms · ${languageLabel(data.language)}`,
       });
     },
     onError: (e: Error) => toast.error("Transcription failed", { description: e.message }),
@@ -113,6 +131,8 @@ export function ReportTab() {
         audioDurationSec: captured?.durationSec ?? draft.audioDurationSec,
         transcript: draft.transcript,
         transcriptLatencyMs: draft.transcriptLatencyMs,
+        transcriptProvider: draft.transcriptProvider ?? "zai-asr",
+        language: draft.language,
         fields: draft.fields,
         followUps: draft.followUps,
         urgentTags: draft.urgentTags,
@@ -213,6 +233,31 @@ export function ReportTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-1.5 sm:max-w-xs sm:flex-1">
+              <Label htmlFor="language">Speaking language</Label>
+              <Select
+                value={draft.language}
+                onValueChange={(v) => setDraft({ language: v })}
+              >
+                <SelectTrigger id="language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <SelectItem key={l.code} value={l.code}>
+                      {l.label}
+                      {l.codeSwitched ? " · code-switched" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Pick the language the worker is speaking. Intron ships dedicated
+                code-switched models for African languages.
+              </p>
+            </div>
+          </div>
           <AudioRecorder
             captured={captured}
             disabled={!draft.consentGiven}
@@ -234,6 +279,8 @@ export function ReportTab() {
                 audioDurationSec: undefined,
                 transcript: undefined,
                 transcriptLatencyMs: undefined,
+                transcriptProvider: undefined,
+                transcriptVia: undefined,
                 extracted: undefined,
                 urgentTags: [],
               });
@@ -274,16 +321,36 @@ export function ReportTab() {
             )}
 
             <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Transcript
                 </span>
-                {draft.transcriptLatencyMs != null && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {draft.transcriptProvider && (
+                    <Badge
+                      variant="outline"
+                      className={
+                        draft.transcriptProvider === "sahara"
+                          ? "border-teal-300 text-teal-700 dark:border-teal-700 dark:text-teal-300"
+                          : "border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-300"
+                      }
+                    >
+                      {draft.transcriptProvider === "sahara"
+                        ? "Sahara (Intron)"
+                        : "z-ai ASR (fallback)"}
+                      {draft.transcriptVia === "no-intron-key" && " · no key"}
+                    </Badge>
+                  )}
                   <Badge variant="secondary" className="font-mono text-xs">
-                    <Clock className="h-3 w-3" />
-                    {draft.transcriptLatencyMs}ms
+                    {languageLabel(draft.language)}
                   </Badge>
-                )}
+                  {draft.transcriptLatencyMs != null && (
+                    <Badge variant="secondary" className="font-mono text-xs">
+                      <Clock className="h-3 w-3" />
+                      {draft.transcriptLatencyMs}ms
+                    </Badge>
+                  )}
+                </div>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed">
                 {draft.transcript}

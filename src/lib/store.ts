@@ -14,6 +14,9 @@ interface ReportDraft {
   audioDurationSec?: number | null;
   transcript?: string | null;
   transcriptLatencyMs?: number | null;
+  /** Which STT provider actually ran (e.g. "sahara" | "zai-asr"). */
+  transcriptProvider?: string | null;
+  transcriptVia?: string | null;
   extracted?: ExtractedFields | null;
   // editable structured fields the user can correct
   fields: {
@@ -29,6 +32,8 @@ interface ReportDraft {
   followUps: { field: string; question: string; answer: string }[];
   urgentTags: string[];
   consentGiven: boolean;
+  /** Intron/Sahara STT language code, e.g. "lg" (Luganda-English). */
+  language: string;
   status: IncidentStatus | "new";
 }
 
@@ -46,6 +51,7 @@ const emptyDraft: ReportDraft = {
   followUps: [],
   urgentTags: [],
   consentGiven: false,
+  language: "lg",
   status: "new",
 };
 

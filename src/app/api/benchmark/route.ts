@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { transcribeAudio } from "@/lib/zai";
+import { isIntronConfigured, transcribeWithIntron } from "@/lib/intron";
 import { computeAllMetrics, DEFAULT_CRITICAL_TERMS } from "@/lib/metrics";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 import { makeReferenceNo } from "@/lib/safety";
@@ -42,22 +42,36 @@ export async function GET() {
 }
 
 /** POST /api/benchmark — run a multi-lane benchmark.
- *  Body (FormData): audio, referenceTranscript, scenario?
+ *  Body (FormData): audio, referenceTranscript, scenario?, language?
  *
  *  Lanes:
- *   - "zai-asr" (Sahara proxy): REAL transcription via the Z cloud ASR, real metrics.
+ *   - "sahara": REAL Intron Voice STT (the competition's required Sahara model).
+ *     In benchmark mode there is NO silent fallback: if INTRON_API_KEY is
+ *     missing or the call fails, the lane reports a clear error and is NOT
+ *     retried on another model.
  *   - "whisper" / "gemini": clearly-labelled SIMULATED degradation lanes that
- *     demonstrate the metrics engine. In production these are real provider calls
- *     wired up in convex/actions/transcribe.ts (no silent fallback). */
+ *     demonstrate the metrics engine. In production these are real provider
+ *     calls wired up in convex/actions/transcribe.ts. */
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
     const file = form.get("audio");
     const referenceTranscript = (form.get("referenceTranscript") as string) ?? "";
     const scenario = (form.get("scenario") as string) ?? null;
-    const scenarioLabel = scenario
-      ? ({ s1: "Reactor relief valve (code-switch)", s2: "Chemical spill (English)", s3: "Forklift near-miss (Swahili+EN)", s4: "Arc flash (technical EN)" } as Record<string, string>)[scenario] ?? scenario
+    const scenarioMeta = scenario
+      ? ({
+          s1: { label: "Reactor relief valve (code-switch)", lang: "lg" },
+          s2: { label: "Chemical spill (English)", lang: "en" },
+          s3: { label: "Forklift near-miss (Swahili+EN)", lang: "sw" },
+          s4: { label: "Arc flash (technical EN)", lang: "en" },
+        } as Record<string, { label: string; lang: string }>)[scenario] ?? {
+          label: scenario,
+          lang: "lg",
+        }
       : null;
+    const scenarioLabel = scenarioMeta?.label ?? null;
+    const language =
+      (form.get("language") as string) || scenarioMeta?.lang || "lg";
 
     if (!referenceTranscript.trim()) {
       return NextResponse.json(
@@ -68,66 +82,55 @@ export async function POST(req: Request) {
 
     const results: BenchmarkResult[] = [];
 
-    // Lane 1 — REAL z-ai ASR (Sahara proxy). ---------------------------------
-    if (file instanceof File) {
-      if (file.size > MAX_AUDIO_BYTES) {
-        return NextResponse.json(
-          { error: `Audio too large (max ${Math.round(MAX_AUDIO_BYTES / 1024 / 1024)}MB)` },
-          { status: 413 },
-        );
-      }
+    // Lane 1 — REAL Intron Voice (Sahara). No silent fallback in benchmark mode.
+    if (!(file instanceof File)) {
+      results.push(emptyLane("sahara", "No audio provided for the Sahara lane"));
+    } else if (file.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json(
+        { error: `Audio too large (max ${Math.round(MAX_AUDIO_BYTES / 1024 / 1024)}MB)` },
+        { status: 413 },
+      );
+    } else {
       const mime = (form.get("mimeType") as string) || file.type || "audio/wav";
       if (!ACCEPTED_AUDIO_TYPES.includes(mime) && !ACCEPTED_AUDIO_TYPES.includes(file.type)) {
         return NextResponse.json({ error: `Unsupported audio type: ${mime}` }, { status: 415 });
       }
-      const bytes = Buffer.from(await file.arrayBuffer());
-      const base64 = bytes.toString("base64");
-      try {
-        const { text, latencyMs } = await transcribeAudio(base64);
-        const m = computeAllMetrics(referenceTranscript, text, {
-          criticalTerms: DEFAULT_CRITICAL_TERMS,
-          latencyMs,
+      if (!isIntronConfigured()) {
+        results.push(
+          emptyLane(
+            "sahara",
+            "INTRON_API_KEY not set — add it to .env to run the real Sahara lane",
+          ),
+        );
+      } else {
+        const audioBlob = new Blob([new Uint8Array(await file.arrayBuffer())], {
+          type: mime,
         });
-        results.push({
-          provider: "zai-asr",
-          text,
-          wer: m.wer,
-          cer: m.cer,
-          criticalTermRecall: m.criticalTermRecall,
-          latencyMs: m.latencyMs,
-          wordCount: m.wordCount,
-          success: true,
-          simulated: false,
-        });
-      } catch (e) {
-        // No silent fallback — report the lane honestly.
-        results.push({
-          provider: "zai-asr",
-          text: "",
-          wer: null,
-          cer: null,
-          criticalTermRecall: null,
-          latencyMs: null,
-          wordCount: null,
-          error: safeErr(e),
-          success: false,
-          simulated: false,
-        });
+        try {
+          const r = await transcribeWithIntron({
+            audioBlob,
+            fileName: file.name || "benchmark.wav",
+            language,
+          });
+          const m = computeAllMetrics(referenceTranscript, r.text, {
+            criticalTerms: DEFAULT_CRITICAL_TERMS,
+            latencyMs: r.latencyMs,
+          });
+          results.push({
+            provider: "sahara",
+            text: r.text,
+            wer: m.wer,
+            cer: m.cer,
+            criticalTermRecall: m.criticalTermRecall,
+            latencyMs: m.latencyMs,
+            wordCount: m.wordCount,
+            success: true,
+            simulated: false,
+          });
+        } catch (e) {
+          results.push(emptyLane("sahara", safeErr(e)));
+        }
       }
-    } else {
-      // No audio provided — the real lane is skipped (clearly).
-      results.push({
-        provider: "zai-asr",
-        text: "",
-        wer: null,
-        cer: null,
-        criticalTermRecall: null,
-        latencyMs: null,
-        wordCount: null,
-        error: "No audio provided for the real ASR lane",
-        success: false,
-        simulated: false,
-      });
     }
 
     // Lanes 2 & 3 — SIMULATED degradation (clearly labelled). -----------------
@@ -240,6 +243,21 @@ function avg(xs: (number | null)[]): number | null {
   const vals = xs.filter((x): x is number => x != null && !Number.isNaN(x));
   if (!vals.length) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function emptyLane(provider: SpeechProvider, error: string): BenchmarkResult {
+  return {
+    provider,
+    text: "",
+    wer: null,
+    cer: null,
+    criticalTermRecall: null,
+    latencyMs: null,
+    wordCount: null,
+    error,
+    success: false,
+    simulated: false,
+  };
 }
 
 function safeErr(e: unknown): string {

@@ -70,6 +70,8 @@ export async function POST(req: Request) {
       audioDurationSec,
       transcript,
       transcriptLatencyMs,
+      transcriptProvider,
+      language,
       fields,
       followUps,
       urgentTags,
@@ -82,6 +84,8 @@ export async function POST(req: Request) {
       audioDurationSec?: number | null;
       transcript?: string | null;
       transcriptLatencyMs?: number | null;
+      transcriptProvider?: string | null;
+      language?: string | null;
       fields: {
         location?: string;
         equipment?: string;
@@ -146,16 +150,19 @@ export async function POST(req: Request) {
         isUrgent,
         urgencyTags: JSON.stringify(tags),
         consentGiven: true,
-        detectedLanguage: detectedLanguage ?? null,
+        detectedLanguage: detectedLanguage ?? language ?? null,
       },
     });
 
-    // Primary transcript record (the Sahara proxy / z-ai ASR lane).
+    // Primary transcript record — provider reflects what actually ran
+    // ("sahara" for the real Intron Voice API, "zai-asr" for the test fallback).
     if (transcript) {
+      const provider =
+        transcriptProvider === "sahara" ? "sahara" : "zai-asr";
       await db.transcript.create({
         data: {
           incidentId: created.id,
-          provider: "zai-asr",
+          provider,
           text: transcript,
           latencyMs: transcriptLatencyMs ?? null,
           wordCount: transcript.split(/\s+/).filter(Boolean).length,
@@ -181,7 +188,10 @@ export async function POST(req: Request) {
     }
 
     await audit(created.id, "recorded", "Voice report submitted");
-    if (transcript) await audit(created.id, "transcribed", `zai-asr · ${transcriptLatencyMs ?? "?"}ms`);
+    if (transcript) {
+      const prov = transcriptProvider === "sahara" ? "sahara (Intron)" : "zai-asr";
+      await audit(created.id, "transcribed", `${prov} · ${transcriptLatencyMs ?? "?"}ms${language ? ` · ${language}` : ""}`);
+    }
     await audit(created.id, "extracted", `${tags.length} urgent tag(s)`);
     if (isUrgent) await audit(created.id, "escalated", tags.join(", "));
 

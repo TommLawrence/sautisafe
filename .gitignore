@@ -62,3 +62,5 @@ server.log
 sautisafe-*.png
 # environment tooling
 /.zscripts/
+# stray tool output
+tool-results/
