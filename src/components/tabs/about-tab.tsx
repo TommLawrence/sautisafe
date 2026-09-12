@@ -215,6 +215,8 @@ const NEVER_DO = [
 function ProviderStatus() {
   const [status, setStatus] = React.useState<{
     intron?: { configured: boolean; baseUrl: string };
+    whisper?: { configured: boolean };
+    gemini?: { configured: boolean; model?: string };
     pwa?: boolean;
     offlineDrafts?: boolean;
   } | null>(null);
@@ -225,15 +227,24 @@ function ProviderStatus() {
       .catch(() => setStatus(null));
   }, []);
   if (!status) return null;
-  const intronOn = status.intron?.configured;
   return (
     <div className="flex flex-wrap gap-2">
       <Pill
-        ok={intronOn}
+        ok={status.intron?.configured}
         label="Intron (Sahara)"
-        okText={intronOn ? "configured" : "no key — set INTRON_API_KEY"}
+        okText={status.intron?.configured ? "configured" : "no key"}
       />
-      <Pill ok label="z-ai ASR" okText="fallback ready" />
+      <Pill
+        ok={status.whisper?.configured}
+        label="Whisper (OpenAI)"
+        okText={status.whisper?.configured ? "configured" : "no key"}
+      />
+      <Pill
+        ok={status.gemini?.configured}
+        label={`Gemini (${status.gemini?.model ?? "gemini-3.8-flash"})`}
+        okText={status.gemini?.configured ? "configured" : "no key"}
+      />
+      <Pill ok label="z-ai ASR" okText="fallback" />
       <Pill ok={!!status.pwa} label="PWA" okText={status.pwa ? "installable" : "off"} />
       <Pill
         ok={!!status.offlineDrafts}

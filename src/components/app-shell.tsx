@@ -5,7 +5,6 @@ import { BrandMark } from "@/components/brand-mark";
 import { ModeToggle } from "@/components/mode-toggle";
 import { InstallPrompt } from "@/components/install-prompt";
 import { OfflineDraftsButton } from "@/components/offline-drafts-button";
-import { UserMenu } from "@/components/user-menu";
 import { useAppStore, type TabKey } from "@/lib/store";
 import { retryAllDrafts } from "@/lib/drafts-store";
 import { cn } from "@/lib/utils";
@@ -133,7 +132,6 @@ function Header({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
           )}
           <OfflineDraftsButton />
           <InstallPrompt />
-          <UserMenu />
           <ModeToggle />
         </div>
       </div>

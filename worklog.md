@@ -283,3 +283,25 @@ Stage Summary:
 - Everything — auth, STT, extraction, PWA, offline drafts — stays in the Z cloud; no external auth provider, no email gateway dependency.
 - Honoured: no cron job; mobile-first primary focus; only mergeable items from the codebase review were considered (the user's prior codebase had nothing PWA to merge).
 - Open: the owner pastes INTRON_API_KEY + GEMINI_API_KEY (+ optional OPENAI_API_KEY) into .env; with those set, the About-tab provider pills flip to emerald and every transcription + benchmark lane hits the real APIs.
+
+---
+Task ID: 27 (strip auth gate + load live keys)
+Agent: Z.ai Code (main orchestrator)
+Task: The login gate redirected back to the login page after sign-in (cookie not surviving the preview/Caddy redirect), and the user wants the auth feature stripped (no email gateway in the z-ai SDK). Strip the gate, write the live Intron + Gemini keys to .env, and answer the gating/Clerk/published-link questions.
+
+Work Log:
+- Wrote the user's INTRON_API_KEY + GEMINI_API_KEY to .env (gitignored; never committed) via sed. OPENAI_API_KEY left empty (not provided).
+- Stripped the in-Zcloud OTP auth gate entirely:
+  * src/app/page.tsx → server component that renders <AppShell/> directly (no getSession check).
+  * Removed `await requireSession()` + the UnauthorizedError→401 catch + the auth import from all 6 data routes (incidents GET/POST, incidents/[id] GET/PATCH, transcribe POST, extract POST, benchmark GET/POST) — they're now open as before.
+  * Removed the UserMenu from the app-shell header + its import.
+  * Deleted src/components/login-gate.tsx, src/components/user-menu.tsx, src/lib/auth.ts, and the src/app/api/auth/* routes (request-otp/verify-otp/logout/me).
+  * Removed the User + OtpCode models from prisma/schema.prisma + db:push (dropped the empty tables) + db:generate.
+- Extended /api/status to report whisper.configured + gemini.configured + the gemini model, and updated the About-tab ProviderStatus pills to show all three real providers (Intron/Whisper/Gemini) + z-ai + PWA + offline.
+- Removed the auth (AUTH_SECRET/DEMO_OTP_VISIBLE) section from .env.example (references removed code).
+- Restarted the dev server to load the new .env keys + stripped code.
+
+Stage Summary:
+- The app now opens STRAIGHT to the Report tab — no login gate, no broken redirect. Verified with curl (page renders "Consent &/Speaking language") + agent-browser.
+- Real API keys are LIVE: /api/status returns intron.configured=true, gemini.configured=true, whisper.configured=false. A real transcribe call (silent WAV) returned {provider:"sahara", via:"sync", latencyMs:10691, durationSec:1} — the real Intron sync endpoint ran end-to-end (~10.7s). The About-tab pills show Intron/Gemini green, Whisper amber.
+- The auth gate is fully removed (code + schema + routes). If the owner later wants gating on the Vercel deployment, Clerk is the clean choice (orthogonal to the stripped OTP infra). No cron job configured.

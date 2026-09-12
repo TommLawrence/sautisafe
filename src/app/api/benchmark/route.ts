@@ -10,7 +10,6 @@ import {
 import { computeAllMetrics, DEFAULT_CRITICAL_TERMS } from "@/lib/metrics";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 import { makeReferenceNo } from "@/lib/safety";
-import { requireSession, UnauthorizedError } from "@/lib/auth";
 import type { BenchmarkResult, SpeechProvider } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -19,7 +18,6 @@ export const maxDuration = 120;
 /** GET /api/benchmark — list past benchmark runs (most recent first). */
 export async function GET() {
   try {
-    await requireSession();
     const runs = await db.benchmarkRun.findMany({
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -44,8 +42,6 @@ export async function GET() {
       })),
     });
   } catch (e) {
-    if (e instanceof UnauthorizedError)
-      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/benchmark GET] error", e);
     return NextResponse.json({ error: "Failed to load benchmark runs" }, { status: 500 });
   }
@@ -64,7 +60,6 @@ export async function GET() {
  *     calls wired up in convex/actions/transcribe.ts. */
 export async function POST(req: Request) {
   try {
-    await requireSession();
     const form = await req.formData();
     const file = form.get("audio");
     const referenceTranscript = (form.get("referenceTranscript") as string) ?? "";
@@ -238,8 +233,6 @@ export async function POST(req: Request) {
       aggregateMetrics,
     });
   } catch (e) {
-    if (e instanceof UnauthorizedError)
-      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/benchmark POST] error", e);
     return NextResponse.json(
       { error: "Benchmark failed", detail: safeErr(e) },
