@@ -416,3 +416,22 @@ Work Log:
 
 Stage Summary:
 - Primary colour is now the microphone blue (#1f63ad); secondary colours (red/amber/green) unchanged. Verified via getComputedStyle: --primary #1f63ad. Footer is clean (no Instance column, no ShieldCheck badge). About tab sanitised (no convex/Z cloud/MIGRATION, no PWA/Offline pills). Reports filters are side-by-side on mobile. Placeholders dimmed. Review-drawer X no longer overlaps the Urgent chip. Dev guide has an abbreviations glossary. lint clean; dev server restarted; no cron job.
+
+---
+Task ID: 45 (role-based access: Technician vs Supervisor)
+Agent: Z.ai Code (main orchestrator)
+Task: Add a landing role picker (Technician / Supervisor) so a field worker doesn't see the supervisor queue, the supervisor gets every submitted report automatically, and the "how does the supervisor review?" question is answered. Scoped to a lightweight role gate (no company/technician provisioning - that's roadmap).
+
+Work Log:
+- Added `role: "supervisor" | "technician" | null` to the Zustand store, persisted to localStorage via the persist middleware (partialize: role only) so the choice survives refresh. Added `setRole`.
+- src/components/landing.tsx: a landing/role-picker screen (brand + tagline + two cards: Technician "record + submit, routed to your supervisor" / Supervisor "review the team's reports, escalate, resolve, export"). Choosing a role sets it + the default tab (technician -> report, supervisor -> reports).
+- src/components/role-switcher.tsx: a header dropdown that shows the current role, switches between Technician/Supervisor, and signs out (back to the landing).
+- src/components/app-entry.tsx: client entry that renders <Landing/> when no role is chosen, else <AppShell/>. page.tsx now renders <AppEntry/>.
+- src/components/app-shell.tsx: role-aware nav. tabsFor(role) hides the Reports tab for technicians; the desktop header nav + the mobile bottom nav both use the filtered list (bottom nav grid columns adapt to the count). The ReportsTab only renders when role === "supervisor". The ?tab= deep-link only honours tabs visible for the role. Added the RoleSwitcher to the header.
+- Report tab submit confirmation is role-aware: a technician gets "Submitted to your supervisor - Your supervisor will review it" + stays on the recorder; a supervisor gets "Report submitted" + goes to the queue. The offline-save fallback path is role-aware too.
+- Verified with agent-browser: landing renders -> "Continue as Technician" -> nav shows Report/Benchmark/About (no Reports) + role-switcher shows "Technician" -> switch to Supervisor -> Reports reappears + lands on the "Supervisor queue". lint clean; dev server restarted.
+
+Stage Summary:
+- The "how do supervisors review?" question is answered: a technician in the tunnel records + submits; the report flows straight to the supervisor's Reports queue (shared backend) - no walking back. The technician gets a clear "Submitted to your supervisor" confirmation and cannot see/review others' reports. The supervisor opens the app -> Reports tab -> reviews/escalates/resolves/exports. Roles are switchable from the header; sign-out returns to the landing.
+- Intentionally NOT built (roadmap, to avoid scope creep under the 2-day deadline): company provisioning, technician rosters, per-company data isolation, real auth. The role is a local, switchable preference (no auth) - sufficient for the demo + honest about its scope.
+- No cron job.

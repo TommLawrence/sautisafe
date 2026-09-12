@@ -1,8 +1,10 @@
 "use client";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { ExtractedFields, FollowUp, IncidentStatus, InjuryStatus, Severity } from "@/lib/types";
 
 export type TabKey = "report" | "reports" | "benchmark" | "about";
+export type Role = "supervisor" | "technician";
 
 interface ReportDraft {
   incidentId?: string | null;
@@ -57,6 +59,8 @@ const emptyDraft: ReportDraft = {
 };
 
 interface AppState {
+  role: Role | null;
+  setRole: (r: Role | null) => void;
   tab: TabKey;
   setTab: (t: TabKey) => void;
   draft: ReportDraft;
@@ -67,16 +71,20 @@ interface AppState {
   setFollowUpAnswer: (index: number, answer: string) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  tab: "report",
-  setTab: (t) => set({ tab: t }),
-  draft: { ...emptyDraft },
-  resetDraft: () =>
-    set({
-      draft: { ...emptyDraft, fields: { ...emptyDraft.fields } },
-    }),
-  setDraft: (patch) =>
-    set((s) => ({ draft: { ...s.draft, ...patch, fields: { ...s.draft.fields } } })),
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      role: null,
+      setRole: (r) => set({ role: r }),
+      tab: "report",
+      setTab: (t) => set({ tab: t }),
+      draft: { ...emptyDraft },
+      resetDraft: () =>
+        set({
+          draft: { ...emptyDraft, fields: { ...emptyDraft.fields } },
+        }),
+      setDraft: (patch) =>
+        set((s) => ({ draft: { ...s.draft, ...patch, fields: { ...s.draft.fields } } })),
   setFields: (patch) =>
     set((s) => ({
       draft: { ...s.draft, fields: { ...s.draft.fields, ...patch } },
@@ -89,4 +97,10 @@ export const useAppStore = create<AppState>((set) => ({
       );
       return { draft: { ...s.draft, followUps: next } };
     }),
-}));
+    }),
+    {
+      name: "sautisafe-role",
+      partialize: (s) => ({ role: s.role }) as Partial<AppState>,
+    },
+  ),
+);

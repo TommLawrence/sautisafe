@@ -7,7 +7,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { InstallPrompt } from "@/components/install-prompt";
 import { OfflineDraftsButton } from "@/components/offline-drafts-button";
 import { Footer } from "@/components/footer";
-import { useAppStore, type TabKey } from "@/lib/store";
+import { RoleSwitcher } from "@/components/role-switcher";
+import { useAppStore, type TabKey, type Role } from "@/lib/store";
 import { retryAllDrafts } from "@/lib/drafts-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -36,17 +37,24 @@ const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?
   { key: "about", label: "About", icon: Info },
 ];
 
-export function AppShell() {
-  const { tab, setTab } = useAppStore();
+/** Tabs visible for a given role. Technicians don't see the supervisor queue. */
+function tabsFor(role: Role | null) {
+  if (role === "technician") return TABS.filter((t) => t.key !== "reports");
+  return TABS;
+}
 
-  // Honour ?tab= from PWA manifest shortcuts.
+export function AppShell() {
+  const { tab, setTab, role } = useAppStore();
+  const tabs = tabsFor(role);
+
+  // Honour ?tab= from PWA manifest shortcuts (only if visible for the role).
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get("tab") as TabKey | null;
-    if (t && ["report", "reports", "benchmark", "about"].includes(t)) {
+    if (t && tabs.some((tab) => tab.key === t)) {
       setTab(t);
     }
-  }, [setTab]);
+  }, [setTab, tabs]);
 
   // Auto-retry queued offline drafts when connectivity returns.
   React.useEffect(() => {
@@ -75,20 +83,20 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header tab={tab} setTab={setTab} />
+      <Header tab={tab} setTab={setTab} tabs={tabs} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-4 sm:px-6 sm:pb-8">
         {tab === "report" && <ReportTab />}
-        {tab === "reports" && <ReportsTab />}
+        {tab === "reports" && role === "supervisor" && <ReportsTab />}
         {tab === "benchmark" && <BenchmarkTab />}
         {tab === "about" && <AboutTab />}
       </main>
       <Footer />
-      <BottomNav tab={tab} setTab={setTab} />
+      <BottomNav tab={tab} setTab={setTab} tabs={tabs} />
     </div>
   );
 }
 
-function Header({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
+function Header({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => void; tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] }) {
   const [online, setOnline] = React.useState(true);
   React.useEffect(() => {
     const update = () => setOnline(navigator.onLine);
@@ -116,7 +124,7 @@ function Header({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
 
         {/* Desktop nav */}
         <nav className="ml-auto hidden items-center gap-1 sm:flex">
-          {TABS.map((t) => {
+          {tabs.map((t) => {
             const active = tab === t.key;
             const Icon = t.icon;
             return (
@@ -147,6 +155,7 @@ function Header({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
           )}
           <OfflineDraftsButton />
           <InstallPrompt />
+          <RoleSwitcher />
           <ModeToggle />
         </div>
       </div>
@@ -155,15 +164,18 @@ function Header({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
 }
 
 /** Mobile bottom navigation (fixed). Hidden on >= sm where the header nav is used. */
-function BottomNav({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
+function BottomNav({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => void; tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] }) {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Primary"
     >
-      <div className="mx-auto grid h-16 max-w-5xl grid-cols-4">
-        {TABS.map((t) => {
+      <div
+        className="mx-auto grid h-16 max-w-5xl"
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+      >
+        {tabs.map((t) => {
           const active = tab === t.key;
           const Icon = t.icon;
           return (

@@ -65,7 +65,7 @@ async function postExtract(transcript: string) {
 }
 
 export function ReportTab() {
-  const { draft, resetDraft, setDraft, setFields, setFollowUpAnswer, setTab } =
+  const { draft, resetDraft, setDraft, setFields, setFollowUpAnswer, setTab, role } =
     useAppStore();
   const [captured, setCaptured] = React.useState<CapturedAudio | null>(null);
 
@@ -152,12 +152,20 @@ export function ReportTab() {
       return (await res.json()) as { id: string; referenceNo: string };
     },
     onSuccess: (data) => {
-      toast.success("Report submitted", {
-        description: `Reference ${data.referenceNo}`,
-      });
+      if (role === "technician") {
+        toast.success("Submitted to your supervisor", {
+          description: `Reference ${data.referenceNo}. Your supervisor will review it.`,
+          duration: 6000,
+        });
+      } else {
+        toast.success("Report submitted", {
+          description: `Reference ${data.referenceNo}`,
+        });
+      }
       resetDraft();
       setCaptured(null);
-      setTab("reports");
+      // supervisors go to the queue; technicians stay on the recorder
+      setTab(role === "supervisor" ? "reports" : "report");
     },
     onError: async (e: Error) => {
       // If the submit failed (offline, network, or server error), persist the
@@ -195,7 +203,7 @@ export function ReportTab() {
           });
           resetDraft();
           setCaptured(null);
-          setTab("reports");
+          setTab(role === "supervisor" ? "reports" : "report");
           return;
         } catch {
           /* fall through to the normal error toast */
