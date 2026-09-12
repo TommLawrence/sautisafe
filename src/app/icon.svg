@@ -1,0 +1,18 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ss-shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="oklch(0.55 0.11 178)" />
+      <stop offset="100%" stop-color="oklch(0.4 0.08 178)" />
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="9" fill="oklch(0.16 0.012 200)" />
+  <path d="M24 4 7 11v12c0 9 6.4 17.4 17 21.4 10.6-4 17-12.4 17-21.4V11L24 4Z"
+    fill="url(#ss-shield)" stroke="oklch(0.3 0.07 178)" stroke-width="1.2" />
+  <g fill="#fff">
+    <rect x="16" y="23" width="2.4" height="6" rx="1.2" opacity="0.75" />
+    <rect x="20.8" y="19" width="2.4" height="14" rx="1.2" />
+    <rect x="25.6" y="15" width="2.4" height="22" rx="1.2" />
+    <rect x="30.4" y="21" width="2.4" height="10" rx="1.2" opacity="0.75" />
+  </g>
+  <circle cx="24" cy="36.5" r="2.4" fill="oklch(0.78 0.15 70)" />
+</svg>
