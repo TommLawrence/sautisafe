@@ -68,7 +68,7 @@ export function Footer() {
       </footer>
 
       <Sheet open={legal === "terms"} onOpenChange={(o) => !o && setLegal(null)}>
-        <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-lg">
+        <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-w-lg">
           <SheetHeader className="border-b pr-6">
             <SheetTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" /> Terms of service
@@ -89,7 +89,7 @@ export function Footer() {
       </Sheet>
 
       <Sheet open={legal === "privacy"} onOpenChange={(o) => !o && setLegal(null)}>
-        <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-lg">
+        <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-w-lg">
           <SheetHeader className="border-b pr-6">
             <SheetTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary" /> Privacy policy

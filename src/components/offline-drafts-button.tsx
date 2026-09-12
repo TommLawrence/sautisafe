@@ -96,7 +96,7 @@ function OfflineDraftsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-md">
+      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-w-md">
         <SheetHeader className="border-b pr-6">
           <SheetTitle className="flex items-center gap-2">
             <Inbox className="h-5 w-5 text-primary" />

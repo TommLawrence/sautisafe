@@ -435,3 +435,16 @@ Stage Summary:
 - The "how do supervisors review?" question is answered: a technician in the tunnel records + submits; the report flows straight to the supervisor's Reports queue (shared backend) - no walking back. The technician gets a clear "Submitted to your supervisor" confirmation and cannot see/review others' reports. The supervisor opens the app -> Reports tab -> reviews/escalates/resolves/exports. Roles are switchable from the header; sign-out returns to the landing.
 - Intentionally NOT built (roadmap, to avoid scope creep under the 2-day deadline): company provisioning, technician rosters, per-company data isolation, real auth. The role is a local, switchable preference (no auth) - sufficient for the demo + honest about its scope.
 - No cron job.
+
+---
+Task ID: 46 (lock role + fix review sheet height)
+Agent: Z.ai Code (main orchestrator)
+Task: Lock the chosen role (no in-app switching; a refresh returns to the landing) and fix the review drawer that was hanging short of the viewport bottom.
+
+Work Log:
+- Role locking: removed the zustand persist middleware, so the role is in-memory only (not persisted to localStorage). A refresh clears the role -> the landing shows again to re-pick. Deleted src/components/role-switcher.tsx (the switch/sign-out dropdown) and replaced it with src/components/role-badge.tsx - a static, non-interactive badge (icon + role label) in the header. A technician can no longer click into the supervisor role; the only way back to the landing is a refresh.
+- Review sheet height: the VLM confirmed the review drawer was hanging short with a gap at the bottom. Root cause was the `sm:max-h-[90vh]` cap I'd added earlier - it capped the sheet at 90vh while it was pinned to the top (inset-y-0), leaving a 10vh gap. Removed `sm:max-h-[90vh]` from every SheetContent (review drawer in reports-tab, offline-drafts sheet, Terms + Privacy sheets in footer) so they're full-height (h-full + inset-y-0 = 100vh) on both mobile and desktop; the inner ScrollArea (flex-1 min-h-0) scrolls the content + the footer stays pinned at the bottom.
+- Verified with agent-browser: refresh -> landing (role cleared); pick Supervisor -> static "Supervisor" badge in the header (no dropdown/switcher); open a report -> the dialog measures {top:0, bottom:577, height:577} against innerH:577, i.e. full viewport height, no gap. lint clean; dev server restarted.
+
+Stage Summary:
+- Role is now locked per session: pick once on the landing, can't switch in-app, refresh returns to the landing (good for judges trying both roles). The header shows a static role badge. The review drawer (and Terms/Privacy/offline-drafts sheets) are full-height on both views. No cron job.

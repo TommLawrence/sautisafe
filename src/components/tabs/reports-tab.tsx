@@ -277,7 +277,7 @@ function ReviewSheet({
 
   return (
     <Sheet open={!!incidentId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-2xl">
+      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-w-2xl">
         <SheetHeader className="border-b pr-10">
           <div className="flex items-center gap-2">
             <SheetTitle className="font-mono">{inc?.referenceNo ?? "Loading…"}</SheetTitle>

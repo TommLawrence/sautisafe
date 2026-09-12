@@ -7,7 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { InstallPrompt } from "@/components/install-prompt";
 import { OfflineDraftsButton } from "@/components/offline-drafts-button";
 import { Footer } from "@/components/footer";
-import { RoleSwitcher } from "@/components/role-switcher";
+import { RoleBadge } from "@/components/role-badge";
 import { useAppStore, type TabKey, type Role } from "@/lib/store";
 import { retryAllDrafts } from "@/lib/drafts-store";
 import { cn } from "@/lib/utils";
@@ -155,7 +155,7 @@ function Header({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => voi
           )}
           <OfflineDraftsButton />
           <InstallPrompt />
-          <RoleSwitcher />
+          <RoleBadge />
           <ModeToggle />
         </div>
       </div>
