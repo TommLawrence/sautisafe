@@ -63,7 +63,7 @@ export interface BenchmarkResult {
  *   * "whisper" — OpenAI Whisper (https://api.openai.com/v1/audio/transcriptions)
  *                 with verbose_json response; needs OPENAI_API_KEY.
  *   * "gemini"  — Google Gemini `generateContent` with inline audio data;
- *                 needs GEMINI_API_KEY. Model is GEMINI_MODEL or "gemini-2.0-flash".
+ *                 needs GEMINI_API_KEY. Model is GEMINI_MODEL or "gemini-3.8-flash".
  *
  * If a required env var is missing, throws a clear `Error("provider not
  * configured: set <VAR>")` so the UI can surface the real reason.
@@ -408,7 +408,7 @@ async function transcribeWhisper(blob: Blob): Promise<TranscriptionResult> {
 /**
  * Google Gemini — generative `generateContent` with inline audio data.
  *
- * Uses the gemini-2.0-flash model by default (override with GEMINI_MODEL).
+ * Uses the gemini-3.8-flash model by default (override with GEMINI_MODEL).
  * Sends the audio as base64 inline_data and prompts the model to transcribe
  * verbatim, returning only the transcript text.
  */
@@ -423,7 +423,7 @@ async function transcribeGemini(blob: Blob): Promise<TranscriptionResult> {
     const buf = new Uint8Array(await blob.arrayBuffer());
     const base64 = bufferToBase64(buf);
     const mimeType = blob.type && blob.type.length > 0 ? blob.type : "audio/webm";
-    const model = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+    const model = process.env.GEMINI_MODEL ?? "gemini-3.8-flash";
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
     const body = {

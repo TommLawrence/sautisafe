@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { audit, serialiseIncident } from "@/lib/incidents-server";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
 import type { IncidentStatus } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -12,6 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireSession();
     const { id } = await params;
     const inc = await db.incident.findUnique({
       where: { id },
@@ -27,6 +29,8 @@ export async function GET(
     }
     return NextResponse.json({ incident: serialiseIncident(inc) });
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/incidents/[id] GET] error", e);
     return NextResponse.json({ error: "Failed to load report" }, { status: 500 });
   }
@@ -38,6 +42,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireSession();
     const { id } = await params;
     const body = await req.json();
     const { supervisorNotes, reviewedBy, status, reviewedAt } = body as {
@@ -75,6 +80,8 @@ export async function PATCH(
 
     return NextResponse.json({ id: updated.id, status: updated.status });
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/incidents/[id] PATCH] error", e);
     return NextResponse.json(
       { error: "Could not save review", detail: safeErr(e) },

@@ -4,6 +4,7 @@ import {
   isIntronConfigured,
   transcribeWithIntron,
 } from "@/lib/intron";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES } from "@/lib/audio-utils";
 
 export const runtime = "nodejs";
@@ -19,6 +20,7 @@ export const maxDuration = 120;
  *  Mirrors convex/actions/transcribe.ts → transcribeWithProvider("sahara"). */
 export async function POST(req: Request) {
   try {
+    await requireSession();
     const form = await req.formData();
     const file = form.get("audio");
     if (!(file instanceof File)) {
@@ -84,6 +86,8 @@ export async function POST(req: Request) {
       wordCount: text.split(/\s+/).filter(Boolean).length,
     });
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/transcribe] error", e);
     return NextResponse.json(
       { error: "Transcription failed", detail: safeErr(e) },

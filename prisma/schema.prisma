@@ -122,3 +122,33 @@ model AuditEvent {
   detail      String?
   createdAt   DateTime  @default(now())
 }
+
+/// A platform user (worker / supervisor / admin). Email is the primary
+/// identifier; phone is optional. Auth is a demo OTP gate (see src/lib/auth.ts)
+/// — no external auth provider, everything stays in the Z cloud.
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  phone       String?
+  name        String?
+  role        String    @default("worker") // worker | supervisor | admin
+  createdAt   DateTime  @default(now())
+  lastLoginAt DateTime?
+}
+
+/// One-time login codes. Hashed at rest; single-use; expire after 5 minutes;
+/// max 5 attempts. In demo mode (DEMO_OTP_VISIBLE=true) the code is also
+/// surfaced in the /api/auth/request-otp response because there is no email
+/// gateway in the Z cloud SDK — production would deliver it by email/SMS.
+model OtpCode {
+  id          String    @id @default(cuid())
+  identifier  String // email (or phone)
+  codeHash    String // sha256 hex of the 6-digit code
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([identifier, createdAt])
+}
+

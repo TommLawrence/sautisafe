@@ -2,15 +2,17 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { audit, nextReferenceNo, serialiseIncident } from "@/lib/incidents-server";
 import { applyInjuryNegation, detectUrgentTags } from "@/lib/safety";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
 import type { InjuryStatus, Severity } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** GET /api/incidents?status=...&urgent=true&q=...
- *  Returns { incidents: Incident[] } (most recent first). */
+ *  Returns { incidents: Incident[] } (most recent first). Requires a session. */
 export async function GET(req: Request) {
   try {
+    await requireSession();
     const url = new URL(req.url);
     const status = url.searchParams.get("status") ?? undefined;
     const urgent = url.searchParams.get("urgent");
@@ -52,6 +54,8 @@ export async function GET(req: Request) {
       })),
     });
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/incidents GET] error", e);
     return NextResponse.json({ error: "Failed to load incidents" }, { status: 500 });
   }
@@ -62,6 +66,7 @@ export async function GET(req: Request) {
  *  fields + follow-ups + urgency). Mirrors convex/incidents.ts → createIncident. */
 export async function POST(req: Request) {
   try {
+    await requireSession();
     const body = await req.json();
     const {
       audioFileName,
@@ -197,6 +202,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id: created.id, referenceNo: created.referenceNo });
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/incidents POST] error", e);
     return NextResponse.json(
       { error: "Could not save report", detail: safeErr(e) },

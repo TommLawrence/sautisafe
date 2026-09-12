@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { chatJson } from "@/lib/zai";
 import { applyInjuryNegation, detectUrgentTags, URGENCY_VOCABULARY } from "@/lib/safety";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
 import type { ExtractedFields, InjuryStatus, Severity } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -45,6 +46,7 @@ Severity guidance: "critical" = active danger to life/limb or uncontrolled relea
  *  Returns ExtractedFields. Mirrors convex/actions/extract.ts → extractSafetyFields. */
 export async function POST(req: Request) {
   try {
+    await requireSession();
     const { transcript } = (await req.json()) as { transcript?: string };
     if (!transcript || !transcript.trim()) {
       return NextResponse.json({ error: "Transcript is required" }, { status: 400 });
@@ -91,6 +93,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result);
   } catch (e) {
+    if (e instanceof UnauthorizedError)
+      return NextResponse.json({ error: e.message }, { status: 401 });
     console.error("[/api/extract] error", e);
     return NextResponse.json(
       { error: "Extraction failed", detail: safeErr(e) },

@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { NativeSelect } from "@/components/ui/native-select";
 import { SAMPLE_SCENARIOS } from "@/lib/safety";
 import { SUPPORTED_LANGUAGES } from "@/lib/languages";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES, formatBytes } from "@/lib/audio-utils";
@@ -122,13 +123,13 @@ export function BenchmarkTab() {
           </CardTitle>
           <CardDescription>
             Compare speech models on the same audio against a verified reference
-            transcript. The Sahara lane calls the real Intron Voice API (set
+            transcript. Every lane calls its real provider when the matching key
+            is set in <code className="rounded bg-muted px-1 font-mono text-[11px]">.env</code>:
             <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">INTRON_API_KEY</code>
-            in <code className="rounded bg-muted px-1 font-mono text-[11px]">.env</code>
-            to enable it); without a key it reports an honest “not configured”
-            error and is never silently substituted. Whisper &amp; Gemini lanes are
-            clearly-labelled simulations in this test env — the Convex migration
-            wires them to the real providers.
+            (Sahara), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">OPENAI_API_KEY</code>
+            (Whisper), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">GEMINI_API_KEY</code>
+            (Gemini <code className="font-mono">gemini-3.8-flash</code>). Without a key a
+            lane reports an honest “not configured” error — never silently substituted.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -198,19 +199,14 @@ export function BenchmarkTab() {
                 </p>
               </div>
               <div className="space-y-1.5">
-                <Label>Sahara language</Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORTED_LANGUAGES.map((l) => (
-                      <SelectItem key={l.code} value={l.code}>
-                        {l.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="bench-language">Sahara language</Label>
+                <NativeSelect
+                  id="bench-language"
+                  aria-label="Sahara language"
+                  value={language}
+                  onValueChange={setLanguage}
+                  options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+                />
                 <p className="text-[11px] text-muted-foreground">
                   The language the Sahara (Intron) model transcribes in.
                 </p>

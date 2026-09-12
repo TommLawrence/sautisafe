@@ -202,3 +202,84 @@ Stage Summary:
 - Verified with agent-browser: page 200, SW registered (navigator.serviceWorker truthy), manifest/sw.js/icons all 200, /api/status returns intron.configured=false (waiting on the user's key), responsive classes confirmed (bottom nav display:none on desktop via sm:hidden, will show <640px), About tab renders the provider pills + dataset declaration.
 - The user's codebase contributed nothing mergeable for the PWA (it had none); the current Next.js app remains the real implementation. Two optional pure-CSS component ports (native-select, empty) noted in docs/codebase-merge-review.md as polish, not yet done.
 - Honoured: no cron job; mobile-first is now the primary focus; only mergeable items from the codebase review were considered.
+
+---
+Task ID: B
+Agent: full-stack-developer (Whisper + Gemini providers)
+Task: Wire real Whisper (OpenAI) + Gemini (gemini-3.8-flash) STT provider lanes.
+
+Work Log:
+- Read /home/z/my-project/worklog.md for full context (prior tasks: 2, 15-21, plus R2 research subagent).
+- Read src/lib/intron.ts (the pattern to mirror: `isIntronConfigured()` guard, `transcribeWithIntron({audioBlob, fileName, language})` async fn, safe secret-stripped Errors via `safeText`, `Date.now()` latency, server-only by convention since only imported by route handlers).
+- Read src/app/api/benchmark/route.ts (the orchestrator-owned file — DO NOT MODIFY; it currently uses `corruptTranscript` for whisper/gemini lanes, and the orchestrator will wire providers.ts in themselves to avoid conflicts).
+- Read convex/actions/transcribe.ts (the convex mirror; it already calls real OpenAI + Gemini but defaults the Gemini model to "gemini-2.0-flash" — needs to become "gemini-3.8-flash").
+- Read src/lib/types.ts to confirm `SpeechProvider` already includes "whisper" | "gemini" and `BenchmarkResult.latencyMs` is `number | null` so a real ProviderResult with `latencyMs: number` fits cleanly.
+- Read .env.example (already documents the convex env vars in comments but no live OPENAI_API_KEY / GEMINI_API_KEY / GEMINI_MODEL entries at the top level).
+- Created /home/z/my-project/src/lib/providers.ts (NEW, server-only by convention — process.env usage, no client import):
+  * `ProviderResult` interface: `{ text: string; latencyMs: number; language?: string | null; wordCount?: number | null }`.
+  * `ProviderTranscribeInput` interface: `{ audioBlob: Blob | Buffer; fileName: string; language?: string }`.
+  * `isWhisperConfigured()` → `!!OPENAI_API_KEY && OPENAI_API_KEY.length > 8`.
+  * `transcribeWithWhisper({audioBlob, fileName, language})`:
+    - POST https://api.openai.com/v1/audio/transcriptions, `Authorization: Bearer OPENAI_API_KEY`, multipart `file` (the Blob, with fileName), `model="whisper-1"`, `response_format="verbose_json"`, optional `language` (ISO short code passed through — Whisper supports fewer African langs; we surface the OpenAI error safely if rejected).
+    - Tolerates text/plain fallback (OpenAI has been known to ignore response_format). On JSON: pulls `text`/`transcript`, `language`/`lang`, and word count from the `words` array if present else from `text.trim().split(/\s+/)`.
+    - Returns `{ text, latencyMs, language, wordCount }`. latencyMs via `Date.now()` around the actual HTTP call.
+    - Throws safe, secret-stripped Errors: network errors wrapped, HTTP errors carry status + first 300 chars of body, `safeErr()` strips Bearer tokens, `api_key=` values, `sk-...` and `AIza...` Gemini key prefixes.
+  * `isGeminiConfigured()` → `!!GEMINI_API_KEY && GEMINI_API_KEY.length > 8`.
+  * `transcribeWithGemini({audioBlob, fileName, language})`:
+    - Model: `process.env.GEMINI_MODEL || "gemini-3.8-flash"` (the owner's required exact model).
+    - POST https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=GEMINI_API_KEY with body `{ contents: [{ parts: [{ text: "Transcribe this audio verbatim, preserving any code-switched English/technical terms exactly as spoken." }, { inline_data: { mime_type: <audio mime>, data: <base64> } }] }], generationConfig: { temperature: 0 } }`.
+    - Audio base64-encoded exactly as specified: `Buffer.from(await audioBlob.arrayBuffer()).toString("base64")`. mime_type from `audioBlob.type` or default `audio/wav`.
+    - Parses `candidates[0].content.parts[].text` joined (filtered for empty parts, joined with `\n`, trimmed).
+    - Returns `{ text, latencyMs }`. Throws safe error if the model returns no transcript (surfaces `finishReason` when Gemini safety-blocked).
+  * Helpers: `pickString`/`pickOptionalString`, `safeText` (300-char body slice), `safeErr` (regex-strips Bearer/api_key=/sk-/AIza prefixes, slices to 500 chars), minimal `GeminiResponse` type.
+- Updated convex/actions/transcribe.ts — three edits, NO change to the Sahara/Intron branch:
+  1. JSDoc on `transcribeWithProvider` (line ~66): "Model is GEMINI_MODEL or 'gemini-2.0-flash'" → "'gemini-3.8-flash'".
+  2. JSDoc on `transcribeGemini` (line ~411): "Uses the gemini-2.0-flash model by default" → "Uses the gemini-3.8-flash model by default".
+  3. The actual default (line ~426): `process.env.GEMINI_MODEL ?? "gemini-2.0-flash"` → `process.env.GEMINI_MODEL ?? "gemini-3.8-flash"`.
+  The Whisper implementation in convex/actions/transcribe.ts already calls the real OpenAI API — left untouched. Sahara branch left untouched.
+- Updated .env.example — added a new top-level block above the convex comment block:
+    OPENAI_API_KEY=
+    GEMINI_API_KEY=
+    GEMINI_MODEL=gemini-3.8-flash
+  Plus an added convex-env comment line `npx convex env set GEMINI_MODEL ... (default gemini-3.8-flash)` so the production deployment also documents the new default. All existing entries preserved.
+- Ran `bun run lint` once at the end (exit code 0, no errors/warnings for the new file). Did not fix any unrelated pre-existing issues (there were none reported).
+
+Stage Summary:
+- Artifacts:
+  * NEW: /home/z/my-project/src/lib/providers.ts — real Whisper + Gemini STT lanes mirroring src/lib/intron.ts; exports ProviderResult, ProviderTranscribeInput, isWhisperConfigured, transcribeWithWhisper, isGeminiConfigured, transcribeWithGemini, GEMINI_MODEL constant. Server-only by convention (process.env usage; only imported by route handlers).
+  * UPDATED: /home/z/my-project/convex/actions/transcribe.ts — Gemini default model bumped from gemini-2.0-flash to gemini-3.8-flash (3 sites: 2 JSDoc + 1 code); Whisper + Sahara branches unchanged.
+  * UPDATED: /home/z/my-project/.env.example — added OPENAI_API_KEY=, GEMINI_API_KEY=, GEMINI_MODEL=gemini-3.8-flash entries + a corresponding convex env comment line.
+- Key decisions:
+  * Gemini model default is "gemini-3.8-flash" everywhere (src/lib/providers.ts GEMINI_MODEL const, convex transcribeGemini default, .env.example GEMINI_MODEL value).
+  * Whisper model is hardcoded "whisper-1" (per the spec — OpenAI's only generally-available Whisper model id).
+  * ProviderResult is a small shared interface `{ text, latencyMs, language?, wordCount? }` so the orchestrator can wire it into /api/benchmark/route.ts without reshaping. Gemini returns just `{ text, latencyMs }` (language/wordCount are optional).
+  * Safe error handling mirrors intron.ts: `safeText` (300-char body slice) for HTTP errors; `safeErr` regex-strips Bearer tokens, api_key= values, sk-... prefixes, AND Gemini's AIza... key prefix (extra caution since the Gemini key is in the URL query and could theoretically be echoed by an upstream proxy).
+  * No `server-only` package import (not in package.json); matched intron.ts convention (process.env usage + comment + only imported by route handlers).
+  * Did NOT touch /api/benchmark/route.ts (orchestrator will wire providers.ts in themselves to avoid conflicts), .env (gitignored), src/lib/intron.ts, the report/benchmark tab components, the auth files, or prisma/. Did NOT run dev/build/db:push. Did NOT set up any cron job. Did NOT write tests.
+- Verified: `bun run lint` passes (exit 0) for the new src/lib/providers.ts file.
+
+---
+Task ID: 23-26 (real Whisper/Gemini lanes + native select + in-Zcloud auth gate)
+Agent: Z.ai Code (main orchestrator)
+Task: Wire real Whisper (OpenAI) + Gemini (gemini-3.8-flash) benchmark lanes, swap language pickers to a native OS <select>, and gate the platform behind an in-Zcloud email+OTP login (no external auth provider).
+
+Work Log:
+- Delegated Task B (provider functions) to a full-stack subagent: it created src/lib/providers.ts (isWhisperConfigured/transcribeWithWhisper → OpenAI /v1/audio/transcriptions verbose_json; isGeminiConfigured/transcribeWithGemini → generativelanguage generateContent with inline_data base64 audio, model GEMINI_MODEL||"gemini-3.8-flash", temperature 0; safe secret-stripped errors), updated convex/actions/transcribe.ts (Gemini default model → gemini-3.8-flash at 3 sites), and added OPENAI_API_KEY/GEMINI_API_KEY/GEMINI_MODEL to .env.example. Lint clean.
+- Wired providers into /api/benchmark/route.ts: replaced the simulated corruptTranscript lanes with REAL Whisper + Gemini calls (when their keys are set; else honest "not configured" emptyLane — no silent fallback in benchmark mode). Removed the now-unused corruptTranscript helper. Updated the Benchmark tab description to list all three real lanes + their env vars.
+- Updated .env (gitignored) with all key slots: INTRON_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY=, GEMINI_MODEL=gemini-3.8-flash, + a generated AUTH_SECRET + DEMO_OTP_VISIBLE=true.
+- Built the native OS <select>: src/components/ui/native-select.tsx (a styled native <select> that opens the OS picker sheet on mobile; appearance-none with a chevron). Swapped the Report-tab "Speaking language" and Benchmark-tab "Sahara language" pickers to it (Radix Select kept for the desktop-only scenario/decision selects).
+- Built the in-Zcloud auth gate (no external provider — everything stays in the Z cloud):
+  * prisma/schema.prisma: added User {id,email(unique),phone?,name?,role,createdAt,lastLoginAt} + OtpCode {id,identifier,codeHash,expiresAt,consumedAt?,attempts} (index on identifier,createdAt). db:push'd + generated.
+  * src/lib/auth.ts: stateless signed session cookie (HMAC-SHA256 with AUTH_SECRET, base64url payload.mac, 7-day maxAge, httpOnly+sameSite-lax+secure-in-prod); requestOtp (6-digit, sha256-hashed at rest, 5-min expiry, invalidates prior codes); verifyOtp (single-use, ≤5 attempts, upserts User, sets cookie); getSession (verifies cookie); clearSessionCookie; requireSession+UnauthorizedError; isDemoOtpVisible.
+  * API routes: /api/auth/request-otp (returns the code in demo mode since no email gateway exists in the z-ai SDK), /api/auth/verify-otp (verifies + sets cookie), /api/auth/logout (clears cookie), /api/auth/me.
+  * src/components/login-gate.tsx (client): mobile-first 2-step flow — email/phone → "Send code" → demo-OTP banner (amber, with the code) → 6-digit input → "Sign in" → reload to the app.
+  * src/app/page.tsx → server component: getSession() → renders <LoginGate/> if no session else <AppShell/>.
+  * Gated every data route behind requireSession (incidents GET+POST, incidents/[id] GET+PATCH, transcribe POST, extract POST, benchmark GET+POST) → 401 UnauthorizedError; left /api/status + /api/auth/* open.
+  * src/components/user-menu.tsx: header dropdown showing the signed-in email + role + "Sign out" (POST /api/auth/logout → reload). Added to the app-shell header.
+
+Stage Summary:
+- Verified end-to-end with curl + agent-browser: page renders the LoginGate when unauthenticated; /api/incidents returns 401 without a cookie; request-otp returns {ok, deliveredBy:"screen (demo)", demoOtp}; verify-otp sets the cookie + returns the user; /api/incidents returns 200 with the cookie; wrong code → 400 "Wrong code." (so the UI shows the message). In the browser: entered email → demo OTP shown (e.g. 537237) → entered it → signed in → app rendered with the Report tab + UserMenu.
+- All three benchmark lanes are now real (Sahara/Intron, Whisper/OpenAI, Gemini/gemini-3.8-flash) when their keys are set; missing keys show honest "not configured". Language pickers open the native OS sheet on mobile.
+- Everything — auth, STT, extraction, PWA, offline drafts — stays in the Z cloud; no external auth provider, no email gateway dependency.
+- Honoured: no cron job; mobile-first primary focus; only mergeable items from the codebase review were considered (the user's prior codebase had nothing PWA to merge).
+- Open: the owner pastes INTRON_API_KEY + GEMINI_API_KEY (+ optional OPENAI_API_KEY) into .env; with those set, the About-tab provider pills flip to emerald and every transcription + benchmark lane hits the real APIs.

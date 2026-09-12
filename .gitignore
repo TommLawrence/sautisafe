@@ -64,3 +64,6 @@ sautisafe-*.png
 /.zscripts/
 # stray tool output
 tool-results/
+
+# agent scratch space
+/agent-ctx/

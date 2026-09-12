@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AudioRecorder, type CapturedAudio } from "@/components/audio-recorder";
+import { NativeSelect } from "@/components/ui/native-select";
 import { UrgentBanner } from "@/components/urgent-banner";
 import { useAppStore } from "@/lib/store";
 import { detectUrgentTags, INJURY_LABELS, INJURY_STATUSES, SEVERITIES, SEVERITY_LABELS } from "@/lib/safety";
@@ -278,22 +279,17 @@ export function ReportTab() {
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-1.5 sm:max-w-xs sm:flex-1">
               <Label htmlFor="language">Speaking language</Label>
-              <Select
+              <NativeSelect
+                id="language"
+                aria-label="Speaking language"
                 value={draft.language}
                 onValueChange={(v) => setDraft({ language: v })}
-              >
-                <SelectTrigger id="language">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUPPORTED_LANGUAGES.map((l) => (
-                    <SelectItem key={l.code} value={l.code}>
-                      {l.label}
-                      {l.codeSwitched ? " · code-switched" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={SUPPORTED_LANGUAGES.map((l) => ({
+                  value: l.code,
+                  label: l.label,
+                  hint: l.codeSwitched ? "code-switched" : undefined,
+                }))}
+              />
               <p className="text-[11px] text-muted-foreground">
                 Pick the language the worker is speaking. Intron ships dedicated
                 code-switched models for African languages.
