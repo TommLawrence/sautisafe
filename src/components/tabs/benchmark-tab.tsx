@@ -34,7 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SAMPLE_SCENARIOS } from "@/lib/safety";
 import { SUPPORTED_LANGUAGES } from "@/lib/languages";
@@ -401,8 +400,8 @@ function BenchmarkHistory() {
             <p className="text-sm">No benchmark runs yet.</p>
           </div>
         ) : (
-          <ScrollArea className="scroll-thin max-h-72">
-            <ul className="space-y-2 pr-2">
+          <div className="scroll-thin max-h-80 overflow-y-auto pr-1">
+            <ul className="space-y-2">
               {runs.map((run) => {
                 const real = run.results.filter((r) => !r.simulated);
                 const avgWer =
@@ -438,7 +437,7 @@ function BenchmarkHistory() {
                 );
               })}
             </ul>
-          </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>

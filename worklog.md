@@ -342,3 +342,19 @@ Stage Summary:
 - agent-browser confirms the review drawer shows the "Edit transcript" + "Benchmark this report" controls + the verified-reference tip.
 - lint clean; dev server restarted (new Prisma client). No cron job.
 - Open: the Gemini lane geo-blocks the sandbox region (valid key, region not supported) — will resolve on a Vercel deployment in a supported region. Whisper lane stays "not configured" until an OPENAI_API_KEY is added.
+
+---
+Task ID: 30 (OpenAI key + benchmark history border fix)
+Agent: Z.ai Code (main orchestrator)
+Task: Add the owner's OpenAI key + fix the Benchmark history bottom border clipping the last history item.
+
+Work Log:
+- Wrote the owner's OPENAI_API_KEY to .env (gitignored). /api/status now reports whisper.configured=true; all three providers (Intron, Whisper, Gemini) show "configured" in the About-tab pills.
+- Analysed the attached screenshot with the VLM skill (z-ai vision): the Benchmark history's last item was clipped at the bottom by the card border — the Radix ScrollArea with `max-h-72` was clipping content without scrolling (its Viewport renders at content height while the root caps height, so content is cut, not scrollable).
+- Fix: replaced the Radix <ScrollArea> in BenchmarkHistory with a reliable plain <div className="scroll-thin max-h-80 overflow-y-auto pr-1"> + <ul className="space-y-2">. Native overflow-y-auto scrolls its own content correctly in a max-height container. Removed the now-unused ScrollArea import. Bumped the cap from max-h-72 to max-h-80 for a touch more room.
+- Verified: lint clean; dev server restarted (new .env); /api/status → intron/whisper/gemini all configured; agent-browser confirms the Benchmark history now renders multiple runs (SSA-2026-0005, SSA-2026-0003) without the bottom clip.
+
+Stage Summary:
+- IMPORTANT FINDING: the OpenAI key is VALID (auth accepted) but the Whisper API geo-restricts this sandbox region — HTTP 403 "unsupported_country_region_territory". Gemini shows the same (HTTP 400 "User location is not supported for the API use"). So in THIS Zcloud sandbox only the Intron (Sahara) API actually completes a transcription; Whisper + Gemini authenticate but refuse to serve the region. On a Vercel deployment in a supported (US/global) region, all three should work. The benchmark lanes surface these errors honestly (no silent fallback). The benchmark-on-report + standalone benchmark flows both use the shared runner, so they behave identically.
+- Benchmark history bottom-border clip is fixed.
+- No cron job.
