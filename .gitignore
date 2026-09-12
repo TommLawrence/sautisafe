@@ -70,3 +70,6 @@ tool-results/
 
 # persisted audio uploads (test env; production uses Convex file storage)
 /db/uploads/
+
+# stray scratch
+Oklab
