@@ -398,3 +398,21 @@ Stage Summary:
 - All deliverables in download/: DEVELOPER_GUIDE.md, SUBMISSION_FOR_JUDGES.md, samples/ (5 WAVs + README), README.md.
 - New microphone logo + favicon + PWA icons; shield gone. No em dashes anywhere in the UI or docs. Lazy-loaded tabs for faster loads. Organised desktop footer with Terms + Privacy sheets. 5 functional test samples.
 - lint clean; dev server restarted; page + logo assets 200; Terms sheet verified opens with full content; sample 01 transcribes via real Sahara. No cron job.
+
+---
+Task ID: 37-44 (blue theme, footer cleanup, backend-tea strip, mobile filter, placeholders, drawer X, glossary)
+Agent: Z.ai Code (main orchestrator)
+Task: Re-theme primary to the microphone's blue (#1f63ad), clean up the footer (remove the Instance column + the tiny ShieldCheck badge), strip backend internals (convex, Z cloud, MIGRATION.md, test instance, production backend) from all user-facing pages, put the Reports status + urgency filters on one line on mobile, dim placeholders, fix the review-drawer close X overlapping the Urgent chip, and add an abbreviations glossary to the developer guide.
+
+Work Log:
+- Re-themed the palette: primary is now the microphone blue #1f63ad (light + dark) with white foreground; ring + chart-1 + sidebar-primary follow. Red (destructive), amber (accent/warning), green (success) stay as the secondary warning/toast/success colours. Updated the manifest theme_color (#1f63ad) + background_color (#0a2a5e) + the viewport themeColor (light #1f63ad / dark #0a2a5e). Regenerated the maskable PWA icons with a blue background (#004999) + the microphone. Comment block updated.
+- Footer: removed the whole "Instance" column (it carried the backend tea - test instance, production backend in convex, provider list). Now a 2-column desktop footer (brand + safeguards line / Resources: Terms, Privacy, About). Removed the ShieldCheck "tiny badge" icon next to the safeguards line. Sanitized the Privacy policy text (removed "test instance ... Convex file storage" sentence).
+- Backend-tea strip across the UI: rewrote the About tab's "Architecture & data ownership" card as "Data & ownership" - no convex, no Z cloud, no MIGRATION.md line, no "production backend"; just what is stored, the audit trail, server-side keys, and deletion-on-request. Verified 0 user-facing mentions of convex/Z cloud/MIGRATION/test instance/production backend remain in src/components + src/app (API route code comments are developer-facing, not user-facing, and left intact for the dev guide audience).
+- Removed the "PWA - installable" and "Offline drafts - on" pills from the About-tab ProviderStatus (kept the Intron/Whisper/Gemini/z-ai provider pills, since the providers are declared in the dataset declaration).
+- Reports filter row: search input on top (full width), then Status + Urgency (All reports) side-by-side in a 2-col grid on mobile, sm:flex-row on desktop.
+- Dimmed placeholders globally: globals.css @layer base now sets input::placeholder/textarea::placeholder opacity 0.45 so inputs never look pre-filled.
+- Review drawer: the absolute close (X) was overlapping the Urgent chip in the header. Grouped the referenceNo + UrgentChip on the left and bumped the header right padding to pr-10 so the chip clears the X (both views).
+- Developer guide: added a "1.1 Glossary (abbreviations)" table defining ASR, STT, TTS, LLM, WER, CER, critical-term recall, PWA, API, MIME, HMAC, OTP, IndexedDB, PCM, Sahara, code-switching.
+
+Stage Summary:
+- Primary colour is now the microphone blue (#1f63ad); secondary colours (red/amber/green) unchanged. Verified via getComputedStyle: --primary #1f63ad. Footer is clean (no Instance column, no ShieldCheck badge). About tab sanitised (no convex/Z cloud/MIGRATION, no PWA/Offline pills). Reports filters are side-by-side on mobile. Placeholders dimmed. Review-drawer X no longer overlaps the Urgent chip. Dev guide has an abbreviations glossary. lint clean; dev server restarted; no cron job.

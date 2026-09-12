@@ -160,31 +160,25 @@ export function AboutTab() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5 text-primary" />
-            Architecture &amp; data ownership
+            Data &amp; ownership
           </CardTitle>
           <CardDescription>
-            This test instance runs in the Z cloud. The production backend lives in Convex.
+            What SautiSafe stores, why, and how it is protected.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <ProviderStatus />
           <p>
-            For testing, the backend sits here in the Z cloud: Next.js API routes call the
-            real Intron Voice (Sahara) STT, with the z-ai ASR as a transparent fallback, and
-            the LLM for structured extraction. Audio is kept linked to the incident record
-            for verification.
+            Audio recordings, the transcript, and the structured report fields are kept
+            linked to the incident record for supervisor review and verification. An
+            append-only audit trail logs every action (recorded, transcribed, extracted,
+            reviewed, escalated).
           </p>
           <p>
-            The production backend is already written in the{" "}
-            <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">convex/</code>{" "}
-            folder: Convex owns database records, audio storage, speech-provider calls,
-            report workflows, benchmark execution, audit events, and API secrets. The
-            browser never receives Sahara, Whisper, or Gemini API keys.
-          </p>
-          <p>
-            See <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">convex/MIGRATION.md</code>{" "}
-            for the full Prisma→Convex field mapping, the live-route→Convex-function
-            mapping, and deployment steps.
+            Speech-provider keys live only in the deployment environment, never in the
+            browser. Audio is sent to the speech provider server-side for transcription
+            and benchmarking, and a report (with its linked audio and audit trail) can be
+            deleted on request.
           </p>
         </CardContent>
       </Card>
@@ -245,12 +239,6 @@ function ProviderStatus() {
         okText={status.gemini?.configured ? "configured" : "no key"}
       />
       <Pill ok label="z-ai ASR" okText="fallback" />
-      <Pill ok={!!status.pwa} label="PWA" okText={status.pwa ? "installable" : "off"} />
-      <Pill
-        ok={!!status.offlineDrafts}
-        label="Offline drafts"
-        okText={status.offlineDrafts ? "on" : "off"}
-      />
     </div>
   );
 }

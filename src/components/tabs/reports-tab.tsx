@@ -95,7 +95,7 @@ export function ReportsTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -105,29 +105,31 @@ export function ReportsTab() {
                 className="pl-9"
               />
             </div>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="sm:w-44">
-                <Filter className="mr-1 h-4 w-4" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {INCIDENT_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={urgent} onValueChange={setUrgent}>
-              <SelectTrigger className="sm:w-36">
-                <SelectValue placeholder="Urgency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All reports</SelectItem>
-                <SelectItem value="urgent">Urgent only</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:items-center">
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full sm:w-44">
+                  <Filter className="mr-1 h-4 w-4" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {INCIDENT_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={urgent} onValueChange={setUrgent}>
+                <SelectTrigger className="w-full sm:w-36">
+                  <SelectValue placeholder="Urgency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All reports</SelectItem>
+                  <SelectItem value="urgent">Urgent only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -276,8 +278,8 @@ function ReviewSheet({
   return (
     <Sheet open={!!incidentId} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-2xl">
-        <SheetHeader className="border-b pr-6">
-          <div className="flex items-center justify-between gap-2">
+        <SheetHeader className="border-b pr-10">
+          <div className="flex items-center gap-2">
             <SheetTitle className="font-mono">{inc?.referenceNo ?? "Loading…"}</SheetTitle>
             {inc?.isUrgent && <UrgentChip />}
           </div>

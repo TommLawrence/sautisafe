@@ -44,12 +44,10 @@
 }
 
 /*
-  SautiSafe safety palette.
-  Primary = deep teal (serious, trust, safety).
-  Accent = amber (caution / hi-vis).
-  Destructive = red (urgent risk).
+  SautiSafe palette.
+  Primary = microphone blue (#1f63ad) - the brand colour from the logo.
+  Secondary = amber (caution / hi-vis), red (urgent risk), green (success).
   Background = warm off-white (light) / deep slate (dark).
-  No indigo, no blue.
 */
 :root {
   --radius: 0.5rem;
@@ -59,32 +57,32 @@
   --card-foreground: oklch(0.2 0.02 180);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 180);
-  --primary: oklch(0.43 0.09 178);
-  --primary-foreground: oklch(0.99 0.005 178);
+  --primary: #1f63ad;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.965 0.006 95);
-  --secondary-foreground: oklch(0.3 0.02 180);
+  --secondary-foreground: oklch(0.3 0.02 200);
   --muted: oklch(0.965 0.006 95);
-  --muted-foreground: oklch(0.52 0.02 180);
+  --muted-foreground: oklch(0.52 0.02 200);
   --accent: oklch(0.8 0.14 75);
   --accent-foreground: oklch(0.3 0.09 75);
   --destructive: oklch(0.56 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 25);
   --border: oklch(0.9 0.006 95);
   --input: oklch(0.9 0.006 95);
-  --ring: oklch(0.5 0.09 178);
-  --chart-1: oklch(0.55 0.1 178);
+  --ring: #1f63ad;
+  --chart-1: #1f63ad;
   --chart-2: oklch(0.75 0.15 70);
   --chart-3: oklch(0.6 0.2 25);
   --chart-4: oklch(0.65 0.13 145);
   --chart-5: oklch(0.55 0.13 305);
   --sidebar: oklch(0.985 0.004 95);
-  --sidebar-foreground: oklch(0.2 0.02 180);
-  --sidebar-primary: oklch(0.43 0.09 178);
-  --sidebar-primary-foreground: oklch(0.99 0.005 178);
+  --sidebar-foreground: oklch(0.2 0.02 200);
+  --sidebar-primary: #1f63ad;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.95 0.02 95);
   --sidebar-accent-foreground: oklch(0.3 0.09 75);
   --sidebar-border: oklch(0.9 0.006 95);
-  --sidebar-ring: oklch(0.5 0.09 178);
+  --sidebar-ring: #1f63ad;
   --warning: oklch(0.75 0.15 70);
   --warning-foreground: oklch(0.3 0.09 75);
   --success: oklch(0.6 0.13 145);
@@ -98,8 +96,8 @@
   --card-foreground: oklch(0.96 0.005 95);
   --popover: oklch(0.205 0.013 200);
   --popover-foreground: oklch(0.96 0.005 95);
-  --primary: oklch(0.7 0.11 178);
-  --primary-foreground: oklch(0.16 0.02 200);
+  --primary: #1f63ad;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.27 0.013 200);
   --secondary-foreground: oklch(0.96 0.005 95);
   --muted: oklch(0.27 0.013 200);
@@ -110,20 +108,20 @@
   --destructive-foreground: oklch(0.99 0.01 25);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.11 178);
-  --chart-1: oklch(0.65 0.11 178);
+  --ring: #1f63ad;
+  --chart-1: #1f63ad;
   --chart-2: oklch(0.78 0.15 70);
   --chart-3: oklch(0.66 0.2 25);
   --chart-4: oklch(0.7 0.13 145);
   --chart-5: oklch(0.7 0.13 305);
   --sidebar: oklch(0.205 0.013 200);
   --sidebar-foreground: oklch(0.96 0.005 95);
-  --sidebar-primary: oklch(0.7 0.11 178);
-  --sidebar-primary-foreground: oklch(0.16 0.02 200);
+  --sidebar-primary: #1f63ad;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.27 0.013 200);
   --sidebar-accent-foreground: oklch(0.96 0.005 95);
   --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.6 0.11 178);
+  --sidebar-ring: #1f63ad;
   --warning: oklch(0.72 0.15 75);
   --warning-foreground: oklch(0.16 0.02 200);
   --success: oklch(0.65 0.13 145);
@@ -137,6 +135,12 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "cv01";
+  }
+  /* Dim placeholders so inputs don't look pre-filled. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.45;
   }
 }
 

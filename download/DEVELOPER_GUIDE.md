@@ -54,6 +54,28 @@ environment variables only**. They are read at call time in server modules
 actions, never in browser-bundled code. The `/api/status` route exposes only
 boolean `configured` flags and the public Intron base URL, never a key.
 
+### 1.1 Glossary (abbreviations)
+
+| Abbreviation | Meaning |
+|---|---|
+| **ASR** | Automatic Speech Recognition - converting spoken audio into text (speech-to-text). |
+| **STT** | Speech-To-Text - same as ASR. |
+| **TTS** | Text-To-Speech - converting text into spoken audio (the reverse of ASR). |
+| **LLM** | Large Language Model - the model that extracts structured safety fields from a transcript. |
+| **WER** | Word Error Rate - the fraction of words a transcription got wrong vs a reference (0 = perfect, 1 = all wrong). |
+| **CER** | Character Error Rate - like WER but at the character level; useful for code-switched text where "words" are ambiguous. |
+| **Critical-term recall** | The fraction of safety-critical words (pressure, valve, reactor, HCl, electrocution, etc.) that survive in a transcription. |
+| **PWA** | Progressive Web App - an installable, offline-capable web app (manifest + service worker). |
+| **API** | Application Programming Interface - how the frontend talks to the backend over HTTP. |
+| **MIME** | The type label of a file (e.g. `audio/wav`); used to validate uploaded audio. |
+| **HMAC** | Hash-based Message Authentication Code - how the (removed) session cookie was signed. |
+| **OTP** | One-Time Password - the single-use login code (the login gate was stripped for the demo). |
+| **IndexedDB** | A browser database; used to queue offline report drafts (with their audio Blob) until reconnect. |
+| **PCM** | Pulse-Code Modulation - the raw digital-audio format; streaming STT sends base64 PCM16 chunks. |
+| **dB / latency** | Latency is measured in milliseconds (ms) around each provider call for fair benchmarking. |
+| **Sahara** | The competition's required speech model; SautiSafe calls it via the Intron Voice API. |
+| **Code-switching** | Mixing languages mid-sentence (e.g. English + Luganda); Intron ships dedicated bilingual models for this. |
+
 ---
 
 ## 2. Architecture

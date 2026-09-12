@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ShieldCheck, FileText, Lock, Info } from "lucide-react";
+import { FileText, Lock, Info } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,14 +22,13 @@ export function Footer() {
   return (
     <>
       <footer className="mt-auto hidden border-t border-border bg-muted/30 sm:block">
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 px-6 py-8 md:grid-cols-3">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <BrandMark className="h-6 w-6" />
               <span className="text-sm font-bold tracking-tight">SautiSafe</span>
             </div>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            <p className="text-xs text-muted-foreground sm:max-w-md">
               Emergency procedures come first. This tool documents and routes, never replaces them.
             </p>
           </div>
@@ -64,20 +63,6 @@ export function Footer() {
                 </button>
               </li>
             </ul>
-          </div>
-
-          <div className="space-y-2 md:text-right">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Instance
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Test instance in the Z cloud.
-              <br />
-              Production backend in <code className="font-mono">convex/</code>.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Speech: Intron (Sahara), Whisper, Gemini.
-            </p>
           </div>
         </div>
       </footer>
@@ -194,7 +179,6 @@ function PrivacyContent() {
         <strong>4. Speech providers.</strong> Audio is sent server-side to the speech provider
         (Intron / Sahara by default, with Whisper and Gemini available for benchmarking). Provider
         API keys live only in deployment environment variables; the browser never receives them.
-        In this test instance audio is persisted to local disk; production uses Convex file storage.
       </p>
       <p>
         <strong>5. Retention + deletion.</strong> Audio and transcripts are retained linked to the
