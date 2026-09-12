@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Clock,
   FileAudio,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -147,47 +148,51 @@ export function ReportsTab() {
                 <li key={inc.id}>
                   <button
                     onClick={() => setOpenId(inc.id)}
-                    className="flex w-full flex-col gap-2 p-4 text-left transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:gap-4"
+                    className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted"
                   >
-                    <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:flex-1">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-semibold">
-                            {inc.referenceNo}
-                          </span>
-                          {inc.isUrgent && <UrgentChip />}
-                        </div>
-                        <p className="line-clamp-1 text-sm text-foreground">
-                          {inc.hazard || inc.rawTranscript || "No description yet"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {inc.location || "Location not specified"}
-                          {inc.equipment ? ` · ${inc.equipment}` : ""}
-                        </p>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-sm font-semibold">
+                          {inc.referenceNo}
+                        </span>
+                        {inc.isUrgent && <UrgentChip />}
                       </div>
+                      <p className="line-clamp-1 text-sm text-foreground">
+                        {inc.hazard || inc.rawTranscript || "No description yet"}
+                      </p>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">
+                        {inc.location || "Location not specified"}
+                        {inc.equipment ? ` · ${inc.equipment}` : ""}
+                      </p>
+                      <p className="text-[11px] font-medium text-primary sm:hidden">
+                        Tap to review →
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      {inc.severity && (
+                    <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {inc.severity && (
+                          <span
+                            className={cn(
+                              "rounded-full border px-2 py-0.5 text-xs font-medium",
+                              SEVERITY_BADGE[inc.severity],
+                            )}
+                          >
+                            {SEVERITY_LABELS[inc.severity]}
+                          </span>
+                        )}
                         <span
                           className={cn(
                             "rounded-full border px-2 py-0.5 text-xs font-medium",
-                            SEVERITY_BADGE[inc.severity],
+                            STATUS_BADGE[inc.status] ?? STATUS_BADGE.draft,
                           )}
                         >
-                          {SEVERITY_LABELS[inc.severity]}
+                          {STATUS_LABELS[inc.status] ?? inc.status}
                         </span>
-                      )}
-                      <span
-                        className={cn(
-                          "rounded-full border px-2 py-0.5 text-xs font-medium",
-                          STATUS_BADGE[inc.status] ?? STATUS_BADGE.draft,
-                        )}
-                      >
-                        {STATUS_LABELS[inc.status] ?? inc.status}
-                      </span>
+                      </div>
                       <span className="hidden text-xs text-muted-foreground sm:inline">
                         {timeAgo(inc.createdAt)}
                       </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </div>
                   </button>
                 </li>
@@ -268,7 +273,7 @@ function ReviewSheet({
 
   return (
     <Sheet open={!!incidentId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-2xl">
+      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-2xl">
         <SheetHeader className="border-b pr-6">
           <div className="flex items-center justify-between gap-2">
             <SheetTitle className="font-mono">{inc?.referenceNo ?? "Loading…"}</SheetTitle>
@@ -285,7 +290,7 @@ function ReviewSheet({
             <Loader2 className="h-4 w-4 animate-spin" /> Loading report…
           </div>
         ) : (
-          <ScrollArea className="flex-1 scroll-thin">
+          <ScrollArea className="min-h-0 flex-1 scroll-thin">
             <div className="space-y-5 p-4 pr-6">
               {inc.isUrgent && inc.urgencyTags && (
                 <UrgentBanner tags={inc.urgencyTags} />

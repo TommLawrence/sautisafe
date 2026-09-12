@@ -363,13 +363,13 @@ export function AudioRecorder({ onCaptured, onClear, captured, disabled }: Props
       {phase === "recorded" && captured && (
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <Button
                 type="button"
                 size="icon"
                 variant="outline"
                 onClick={togglePlay}
-                className="h-10 w-10 rounded-full"
+                className="h-10 w-10 shrink-0 rounded-full"
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
@@ -378,9 +378,9 @@ export function AudioRecorder({ onCaptured, onClear, captured, disabled }: Props
                   <Play className="h-5 w-5" />
                 )}
               </Button>
-              <div>
-                <p className="text-sm font-medium">{captured.fileName}</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{captured.fileName}</p>
+                <p className="truncate text-xs text-muted-foreground">
                   {formatDuration(captured.durationSec)} · {formatBytes(captured.sizeBytes)} · WAV
                 </p>
               </div>
@@ -390,10 +390,11 @@ export function AudioRecorder({ onCaptured, onClear, captured, disabled }: Props
               variant="ghost"
               size="sm"
               onClick={clearAll}
-              className="text-muted-foreground"
+              className="shrink-0 text-muted-foreground"
+              aria-label="Discard recording"
             >
               <Trash2 className="h-4 w-4" />
-              Discard
+              <span className="hidden sm:inline">Discard</span>
             </Button>
           </div>
           <audio

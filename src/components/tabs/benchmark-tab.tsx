@@ -226,7 +226,7 @@ export function BenchmarkTab() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30">
+          <div className="flex flex-col gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
               <p className="text-xs text-amber-900 dark:text-amber-200">
@@ -234,7 +234,7 @@ export function BenchmarkTab() {
                 is missing, that lane reports a clear error instead of substituting another model.
               </p>
             </div>
-            <Button onClick={() => runMut.mutate()} disabled={runMut.isPending}>
+            <Button onClick={() => runMut.mutate()} disabled={runMut.isPending} className="shrink-0 sm:w-auto w-full">
               {runMut.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (

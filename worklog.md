@@ -305,3 +305,19 @@ Stage Summary:
 - The app now opens STRAIGHT to the Report tab — no login gate, no broken redirect. Verified with curl (page renders "Consent &/Speaking language") + agent-browser.
 - Real API keys are LIVE: /api/status returns intron.configured=true, gemini.configured=true, whisper.configured=false. A real transcribe call (silent WAV) returned {provider:"sahara", via:"sync", latencyMs:10691, durationSec:1} — the real Intron sync endpoint ran end-to-end (~10.7s). The About-tab pills show Intron/Gemini green, Whisper amber.
 - The auth gate is fully removed (code + schema + routes). If the owner later wants gating on the Vercel deployment, Clerk is the clean choice (orthogonal to the stripped OTP infra). No cron job configured.
+
+---
+Task ID: 28 (mobile UI polish — 4 screenshot fixes)
+Agent: Z.ai Code (main orchestrator)
+Task: Fix 4 mobile layout issues the owner reported via screenshots: (1) Discard button clipped on the audio player, (2) Reports queue rows don't look tappable / supervisor can't tell how to review, (3) Run-benchmark button sits beside the warning text instead of below it, (4) review drawer's Follow-up Q&A + Save-review are clipped and not scrollable.
+
+Work Log:
+- Used the VLM skill (z-ai vision CLI) to analyse all 4 mobile screenshots and confirm exactly what was broken: (1) Discard button clipped at the right edge of the captured-audio card (long filename pushes it off); (2) Reports queue rows didn't look tappable; (3) Run-benchmark button beside the warning text; (4) review drawer's Follow-up Q&A clipped at the bottom, ScrollArea not scrolling.
+- Fix 1 (AudioRecorder captured card): made the filename `truncate` inside a `min-w-0 flex-1` wrapper, the Discard button `shrink-0`, and hid the "Discard" label on mobile (icon-only `<sm`, full "Discard" `sm:inline`) so the button always fits.
+- Fix 2 (Reports queue rows): rewrote the list row as a clear tappable item — `flex items-center gap-3`, info `min-w-0 flex-1`, badges + a `ChevronRight` affordance on the right, and a `sm:hidden` "Tap to review →" hint in primary colour so mobile users know to tap. Added ChevronRight to the lucide imports.
+- Fix 3 (Benchmark run row): changed the warning+button container from `flex items-center justify-between` to `flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`, and made the Run-benchmark button `w-full sm:w-auto shrink-0` so on mobile the warning text stacks ABOVE the button.
+- Fix 4 (review drawer + offline-drafts sheet scroll): the root cause was a Radix `ScrollArea` with `flex-1` but no `min-h-0` — flex items default to `min-height:auto` so the ScrollArea grew to content height instead of scrolling. Added `min-h-0` to both ScrollAreas, and bounded the SheetContent height (`h-full ... sm:max-h-[90vh]`) so the flex-1 scroll area has a real bound to scroll within. Now the Follow-up Q&A, audit trail, supervisor-review form, and Save-review button are all reachable by scrolling on mobile.
+- Verified: lint clean; dev server restarted; page loads to the Report tab; Reports rows render with the chevron + "Tap to review" hint (hint is sm:hidden so only on mobile); opening a report drawer shows ALL sections in the DOM (TRANSCRIPT → STRUCTURED REPORT → FOLLOW-UP Q&A → TRANSCRIPTS → AUDIT TRAIL → Supervisor review → Save review/Export) — the min-h-0 fix makes them scroll-reachable on phone-width viewports.
+
+Stage Summary:
+- All 4 mobile issues fixed with standard responsive patterns (truncate+shrink-0, chevron+hint affordance, flex-col→sm:flex-row stack, min-h-0 on flex-1 ScrollArea). The app stays mobile-first. No cron job.

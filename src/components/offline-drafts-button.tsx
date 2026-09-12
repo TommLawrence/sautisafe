@@ -96,7 +96,7 @@ function OfflineDraftsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
+      <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-h-[90vh] sm:max-w-md">
         <SheetHeader className="border-b pr-6">
           <SheetTitle className="flex items-center gap-2">
             <Inbox className="h-5 w-5 text-primary" />
@@ -106,7 +106,7 @@ function OfflineDraftsSheet({
             Reports saved while offline. They submit automatically when you reconnect — or retry now.
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="flex-1 scroll-thin">
+        <ScrollArea className="min-h-0 flex-1 scroll-thin">
           <ul className="divide-y divide-border p-2 pr-4">
             {drafts.map((d) => (
               <li key={d.id} className="space-y-2 p-3">
