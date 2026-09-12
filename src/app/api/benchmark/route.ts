@@ -8,7 +8,7 @@ import type { BenchmarkResult, SpeechProvider } from "@/lib/types";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-/** GET /api/benchmark — list past benchmark runs (most recent first). */
+/** GET /api/benchmark - list past benchmark runs (most recent first). */
 export async function GET() {
   try {
     const runs = await db.benchmarkRun.findMany({
@@ -40,7 +40,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/benchmark — run a multi-lane benchmark.
+/** POST /api/benchmark - run a multi-lane benchmark.
  *  Body (FormData): audio, referenceTranscript, scenario?, language?
  *
  *  Lanes:

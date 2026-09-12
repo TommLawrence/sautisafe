@@ -1,18 +1,33 @@
 "use client";
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { Mic, ClipboardList, FlaskConical, Info, ShieldCheck, WifiOff } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { ModeToggle } from "@/components/mode-toggle";
 import { InstallPrompt } from "@/components/install-prompt";
 import { OfflineDraftsButton } from "@/components/offline-drafts-button";
+import { Footer } from "@/components/footer";
 import { useAppStore, type TabKey } from "@/lib/store";
 import { retryAllDrafts } from "@/lib/drafts-store";
 import { cn } from "@/lib/utils";
-import { ReportTab } from "@/components/tabs/report-tab";
-import { ReportsTab } from "@/components/tabs/reports-tab";
-import { BenchmarkTab } from "@/components/tabs/benchmark-tab";
-import { AboutTab } from "@/components/tabs/about-tab";
 import { toast } from "sonner";
+
+// Lazy-load each tab so the initial bundle excludes recharts + the heavy
+// recorder/extract code; only the active tab's chunk loads.
+const ReportTab = dynamic(() => import("@/components/tabs/report-tab").then((m) => m.ReportTab), { loading: () => <TabSkeleton />, ssr: false });
+const ReportsTab = dynamic(() => import("@/components/tabs/reports-tab").then((m) => m.ReportsTab), { loading: () => <TabSkeleton />, ssr: false });
+const BenchmarkTab = dynamic(() => import("@/components/tabs/benchmark-tab").then((m) => m.BenchmarkTab), { loading: () => <TabSkeleton />, ssr: false });
+const AboutTab = dynamic(() => import("@/components/tabs/about-tab").then((m) => m.AboutTab), { loading: () => <TabSkeleton />, ssr: false });
+
+function TabSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden>
+      <div className="h-24 animate-pulse rounded-xl bg-muted" />
+      <div className="h-40 animate-pulse rounded-xl bg-muted" />
+      <div className="h-40 animate-pulse rounded-xl bg-muted" />
+    </div>
+  );
+}
 
 const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "report", label: "Report", icon: Mic },
@@ -168,27 +183,5 @@ function BottomNav({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }
         })}
       </div>
     </nav>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="mt-auto hidden border-t border-border bg-muted/30 sm:block">
-      <div className="mx-auto w-full max-w-5xl px-6 py-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            <span className="font-medium">Emergency procedures come first.</span>
-            <span className="text-muted-foreground">
-              This tool documents and routes — it never replaces them.
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            SautiSafe · test instance in the Z cloud · production backend in{" "}
-            <code className="font-mono">convex/</code>
-          </p>
-        </div>
-      </div>
-    </footer>
   );
 }

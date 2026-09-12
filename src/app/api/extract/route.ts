@@ -8,7 +8,7 @@ export const maxDuration = 60;
 
 const SYSTEM_PROMPT = `You are SautiSafe, a safety-incident field extraction assistant used in African industrial workplaces (factories, construction, warehouses, transport, mining, utilities).
 
-The worker's transcript may be code-switched: it mixes English with Luganda, Swahili, or another local language. Technical terms (pressure, valve, reactor, hydraulic, isolator, emergency stop) usually stay in English. Preserve those technical terms EXACTLY as spoken — do not "correct" or translate them.
+The worker's transcript may be code-switched: it mixes English with Luganda, Swahili, or another local language. Technical terms (pressure, valve, reactor, hydraulic, isolator, emergency stop) usually stay in English. Preserve those technical terms EXACTLY as spoken - do not "correct" or translate them.
 
 Your job: extract a structured safety report from the transcript. You are a documentation and routing aid only.
 
@@ -19,7 +19,7 @@ SAFEGUARDS (non-negotiable):
 - If a field genuinely cannot be inferred from the transcript, leave it null and add the field name to missingFields.
 - Ask at MOST 2 focused follow-up questions, only for missing high-priority fields.
 - Respect negation: "no one was injured", "no fire", "nobody hurt", "no injuries reported" must NOT add the corresponding urgentTag. Only flag a tag when the hazard is actually present or occurred. EXAMPLE: in "There was a chemical spill but no one was injured", add "chemical" but NOT "injury".
-- occurredAt: only set it when a specific date or day is mentioned. If only a time of day is mentioned (e.g. "around 9am") with no date, leave occurredAt null — never fabricate a date.
+- occurredAt: only set it when a specific date or day is mentioned. If only a time of day is mentioned (e.g. "around 9am") with no date, leave occurredAt null - never fabricate a date.
 - urgentTags must be drawn ONLY from this vocabulary: ${Object.keys(URGENCY_VOCABULARY).join(", ")}.
 
 Return STRICT JSON only (no prose, no code fences) with exactly these keys:
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     }
 
     // Conservative additive backstop: union the LLM's tags with a keyword scan.
-    // The scan only ever CATCHES urgency the LLM missed — it never removes a
+    // The scan only ever CATCHES urgency the LLM missed - it never removes a
     // flag (a false alarm is safer than a missed urgent risk for a safety tool).
     // Negation handling (e.g. "no one was injured") is the LLM's responsibility,
     // enforced by the prompt's explicit example.

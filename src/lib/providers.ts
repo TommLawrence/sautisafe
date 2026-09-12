@@ -9,13 +9,13 @@
 //   - latency measured with `Date.now()` around the actual HTTP call.
 //
 // Environment variables:
-//   OPENAI_API_KEY   — Bearer token for https://api.openai.com/v1/audio/transcriptions
-//   GEMINI_API_KEY   — API key for https://generativelanguage.googleapis.com
-//   GEMINI_MODEL     — Gemini model id; defaults to "gemini-3.8-flash"
+//   OPENAI_API_KEY   - Bearer token for https://api.openai.com/v1/audio/transcriptions
+//   GEMINI_API_KEY   - API key for https://generativelanguage.googleapis.com
+//   GEMINI_MODEL     - Gemini model id; defaults to "gemini-3.8-flash"
 //                      (the owner's required model for the benchmark lane).
 //
 // MUST only be imported in server-side code (route handlers / convex actions).
-// We do not import the `server-only` package here — instead we rely on the
+// We do not import the `server-only` package here - instead we rely on the
 // fact that this file is only ever imported from route handlers (which never
 // ship to the browser bundle) and that we only ever read process.env at call
 // time. Mirrors the convention in `src/lib/intron.ts`.
@@ -59,10 +59,10 @@ export function isWhisperConfigured(): boolean {
  * POST https://api.openai.com/v1/audio/transcriptions
  *   Authorization: Bearer OPENAI_API_KEY
  *   multipart/form-data:
- *     file            — the audio blob
- *     model           — "whisper-1"
- *     response_format — "verbose_json" (gives text + language + duration)
- *     language        — optional ISO short code (e.g. "en"/"sw"). Whisper
+ *     file            - the audio blob
+ *     model           - "whisper-1"
+ *     response_format - "verbose_json" (gives text + language + duration)
+ *     language        - optional ISO short code (e.g. "en"/"sw"). Whisper
  *                       supports fewer African languages than Intron does;
  *                       we pass it through anyway and let OpenAI reject it
  *                       if it is unsupported (the error is surfaced safely).
@@ -121,7 +121,7 @@ export async function transcribeWithWhisper(
     const data = (await res.json()) as Record<string, unknown>;
     text = pickString(data, ["text", "transcript"]);
     language = pickOptionalString(data, ["language", "lang"]) ?? null;
-    // verbose_json exposes `words` (array) and/or `segments` — prefer the
+    // verbose_json exposes `words` (array) and/or `segments` - prefer the
     // words array length when present, else count from `text`.
     const words = data["words"];
     if (Array.isArray(words)) {
@@ -149,7 +149,7 @@ export async function transcribeWithWhisper(
 // ──────────────────────────────────────────────────────────────────────────
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
-/** Default model — the owner's required model for the Gemini benchmark lane.
+/** Default model - the owner's required model for the Gemini benchmark lane.
  *  Override with the GEMINI_MODEL env var. */
 export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 

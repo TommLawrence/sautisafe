@@ -6,7 +6,7 @@ import type { IncidentStatus } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** GET /api/incidents/[id] — full incident with relations. */
+/** GET /api/incidents/[id] - full incident with relations. */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -32,7 +32,7 @@ export async function GET(
   }
 }
 
-/** PATCH /api/incidents/[id] — supervisor review (notes, status, reviewer). */
+/** PATCH /api/incidents/[id] - supervisor review (notes, status, reviewer). */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },

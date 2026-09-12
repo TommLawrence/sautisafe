@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SautiSafe — Safer reporting, in the language workers actually speak",
+  title: "SautiSafe - Safer reporting, in the language workers actually speak",
   description:
     "Code-switched voice reporting assistant for industrial safety incidents and near misses. Transcribes Luganda/Swahili/English, extracts structured safety fields, asks focused follow-ups, flags urgent risks, and benchmarks speech models.",
   manifest: "/manifest.webmanifest",

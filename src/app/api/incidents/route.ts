@@ -157,7 +157,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // Primary transcript record — provider reflects what actually ran
+    // Primary transcript record - provider reflects what actually ran
     // ("sahara" for the real Intron Voice API, "zai-asr" for the test fallback).
     if (transcript) {
       const provider =

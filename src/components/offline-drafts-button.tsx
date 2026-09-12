@@ -103,7 +103,7 @@ function OfflineDraftsSheet({
             Offline drafts
           </SheetTitle>
           <SheetDescription>
-            Reports saved while offline. They submit automatically when you reconnect — or retry now.
+            Reports saved while offline. They submit automatically when you reconnect - or retry now.
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="min-h-0 flex-1 scroll-thin">

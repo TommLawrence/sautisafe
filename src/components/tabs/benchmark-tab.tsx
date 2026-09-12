@@ -128,7 +128,7 @@ export function BenchmarkTab() {
             (Sahara), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">OPENAI_API_KEY</code>
             (Whisper), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">GEMINI_API_KEY</code>
             (Gemini <code className="font-mono">gemini-3.8-flash</code>). Without a key a
-            lane reports an honest “not configured” error — never silently substituted.
+            lane reports an honest “not configured” error - never silently substituted.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -303,7 +303,7 @@ export function BenchmarkTab() {
                         {pct(r.criticalTermRecall)}
                       </td>
                       <td className="py-2 pr-4 text-right font-mono tabular-nums">{ms(r.latencyMs)}</td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.wordCount ?? "—"}</td>
+                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.wordCount ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>

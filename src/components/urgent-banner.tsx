@@ -16,7 +16,7 @@ const TAG_META: Record<string, { label: string; icon: React.ComponentType<{ clas
 };
 
 /** Hi-vis urgent-risk banner. Shown when a transcript contains urgent language.
- *  Never auto-declares equipment safe — always routes to a human. */
+ *  Never auto-declares equipment safe - always routes to a human. */
 export function UrgentBanner({ tags }: { tags: string[] }) {
   if (!tags.length) return null;
   return (
@@ -29,7 +29,7 @@ export function UrgentBanner({ tags }: { tags: string[] }) {
           <Siren className="mt-0.5 h-5 w-5 shrink-0 animate-rec-pulse" />
           <div className="space-y-1">
             <p className="font-semibold leading-tight">
-              Urgent language detected — follow emergency procedures first.
+              Urgent language detected - follow emergency procedures first.
             </p>
             <p className="text-sm text-destructive-foreground/90">
               This report is flagged for immediate supervisor review. This is an

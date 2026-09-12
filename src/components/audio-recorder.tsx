@@ -292,7 +292,7 @@ export function AudioRecorder({ onCaptured, onClear, captured, disabled }: Props
                 : "Tap the microphone to record"}
             </p>
             <p className="text-xs text-muted-foreground">
-              Speak naturally — mix English with Luganda, Swahili, or your local language.
+              Speak naturally - mix English with Luganda, Swahili, or your local language.
             </p>
           </div>
 

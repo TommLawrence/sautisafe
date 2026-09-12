@@ -29,7 +29,7 @@ function extFor(mimeType?: string | null, fileName?: string | null): string {
   return map[mimeType || ""] ?? "wav";
 }
 
-/** Persist an audio blob to disk. Returns a storage id (the filename) — store
+/** Persist an audio blob to disk. Returns a storage id (the filename) - store
  *  this on the incident as `audioStoragePath`. Never exposes the absolute path
  *  to the client. */
 export async function saveAudio(

@@ -17,7 +17,7 @@ export const URGENCY_VOCABULARY: Record<string, string[]> = {
 
 /** Flatten the urgency vocabulary into a keyword list for quick scanning.
  *  Conservative & purely ADDITIVE: if a keyword appears, the tag is flagged.
- *  This backstop only ever CATCHES urgency the LLM might miss — it never
+ *  This backstop only ever CATCHES urgency the LLM might miss - it never
  *  removes a flag. The single, high-precision exception is the `injury` tag,
  *  which `applyInjuryNegation` can drop when the transcript clearly states
  *  nobody was hurt (e.g. "no one was injured"). For a safety tool, a false

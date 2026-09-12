@@ -54,7 +54,7 @@ const TERMINAL = new Set([
 
 /** Transcribe an audio file with Intron Voice.
  *  Strategy: try the sync endpoint first (fast path for ≤120s audio). If the
- *  server times out it returns 503 with a file_id — we then poll the async
+ *  server times out it returns 503 with a file_id - we then poll the async
  *  status endpoint for that file_id (no silent fallback to another model).
  *  If the sync endpoint rejects the audio as too long (400), we re-upload via
  *  the async endpoint and poll. */
@@ -132,7 +132,7 @@ export async function transcribeWithIntron(
     };
   }
 
-  // Any other error — surface safely (no key leakage).
+  // Any other error - surface safely (no key leakage).
   throw new Error(
     `Intron sync STT failed (${syncRes.status}): ${await safeText(syncRes)}`,
   );

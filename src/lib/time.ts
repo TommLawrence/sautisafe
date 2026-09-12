@@ -1,7 +1,7 @@
 /** Human-readable "x ago" for a Date/ISO. */
 export function timeAgo(input: string | Date): string {
   const then = input instanceof Date ? input.getTime() : new Date(input).getTime();
-  if (Number.isNaN(then)) return "—";
+  if (Number.isNaN(then)) return "-";
   const diff = Date.now() - then;
   const s = Math.floor(diff / 1000);
   if (s < 60) return "just now";

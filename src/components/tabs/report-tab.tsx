@@ -161,7 +161,7 @@ export function ReportTab() {
     },
     onError: async (e: Error) => {
       // If the submit failed (offline, network, or server error), persist the
-      // complete report — including the audio Blob — to the offline draft
+      // complete report - including the audio Blob - to the offline draft
       // queue so it survives refresh and retries when connectivity returns.
       if (captured && draft.transcript) {
         try {
@@ -225,7 +225,7 @@ export function ReportTab() {
 
   return (
     <div className="space-y-6">
-      {/* Step 1 — consent */}
+      {/* Step 1 - consent */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export function ReportTab() {
         </CardContent>
       </Card>
 
-      {/* Step 2 — record */}
+      {/* Step 2 - record */}
       <Card className={draft.consentGiven ? "" : "pointer-events-none opacity-50"}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export function ReportTab() {
         </CardContent>
       </Card>
 
-      {/* Step 3 — transcript + extraction */}
+      {/* Step 3 - transcript + extraction */}
       {hasTranscript && (
         <Card>
           <CardHeader>

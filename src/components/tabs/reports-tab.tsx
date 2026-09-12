@@ -375,7 +375,7 @@ function ReviewSheet({
                         {new Date(ev.createdAt).toLocaleTimeString()}
                       </span>
                       <span className="font-medium capitalize">{ev.action}</span>
-                      {ev.detail && <span className="text-muted-foreground">— {ev.detail}</span>}
+                      {ev.detail && <span className="text-muted-foreground">- {ev.detail}</span>}
                     </li>
                   ))}
                 </ol>
@@ -421,7 +421,7 @@ function ReviewSheet({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  This system never declares equipment safe on its own — confirm in
+                  This system never declares equipment safe on its own - confirm in
                   writing that a qualified person inspected it.
                 </p>
               </div>
@@ -506,7 +506,7 @@ function Field({ label, value, full }: { label: string; value?: string | null; f
   return (
     <div className={cn("space-y-0.5", full && "sm:col-span-2")}>
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm">{value || <span className="text-muted-foreground">—</span>}</p>
+      <p className="text-sm">{value || <span className="text-muted-foreground">-</span>}</p>
     </div>
   );
 }
@@ -708,7 +708,7 @@ function BenchmarkResults({
                 <td className="py-1.5 pr-3">
                   <span className="font-medium">{label[r.provider] ?? r.provider}</span>
                   {r.error && (
-                    <span className="ml-1 text-xs text-destructive"> — {r.error}</span>
+                    <span className="ml-1 text-xs text-destructive"> - {r.error}</span>
                   )}
                 </td>
                 <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{pct(r.wer)}</td>
@@ -751,10 +751,10 @@ function timeAgo(s: string) {
 
 function buildExport(inc: Incident): string {
   const lines: string[] = [];
-  lines.push(`# Incident Report — ${inc.referenceNo}`);
+  lines.push(`# Incident Report - ${inc.referenceNo}`);
   lines.push("");
   lines.push(`**Status:** ${STATUS_LABELS[inc.status] ?? inc.status}`);
-  lines.push(`**Severity:** ${inc.severity ? SEVERITY_LABELS[inc.severity] : "—"}`);
+  lines.push(`**Severity:** ${inc.severity ? SEVERITY_LABELS[inc.severity] : "-"}`);
   lines.push(`**Urgent:** ${inc.isUrgent ? "YES" : "no"}`);
   if (inc.urgencyTags?.length) lines.push(`**Urgent tags:** ${inc.urgencyTags.join(", ")}`);
   lines.push(`**Reported:** ${new Date(inc.createdAt).toLocaleString()}`);
@@ -765,12 +765,12 @@ function buildExport(inc: Incident): string {
   lines.push(inc.rawTranscript || "_No transcript_");
   lines.push("");
   lines.push("## Structured report");
-  lines.push(`- **Location:** ${inc.location ?? "—"}`);
-  lines.push(`- **Equipment / asset:** ${inc.equipment ?? "—"}`);
-  lines.push(`- **Hazard / incident:** ${inc.hazard ?? "—"}`);
-  lines.push(`- **People affected:** ${inc.peopleAffected ?? "—"}`);
-  lines.push(`- **Immediate action:** ${inc.immediateAction ?? "—"}`);
-  lines.push(`- **Injury status:** ${inc.injuryStatus ? INJURY_LABELS[inc.injuryStatus] : "—"}`);
+  lines.push(`- **Location:** ${inc.location ?? "-"}`);
+  lines.push(`- **Equipment / asset:** ${inc.equipment ?? "-"}`);
+  lines.push(`- **Hazard / incident:** ${inc.hazard ?? "-"}`);
+  lines.push(`- **People affected:** ${inc.peopleAffected ?? "-"}`);
+  lines.push(`- **Immediate action:** ${inc.immediateAction ?? "-"}`);
+  lines.push(`- **Injury status:** ${inc.injuryStatus ? INJURY_LABELS[inc.injuryStatus] : "-"}`);
   lines.push("");
   if (inc.followUps.length) {
     lines.push("## Follow-up Q&A");
@@ -788,7 +788,7 @@ function buildExport(inc: Incident): string {
   lines.push("## Audit trail");
   for (const ev of inc.auditEvents) {
     lines.push(
-      `- ${new Date(ev.createdAt).toLocaleString()} — **${ev.action}**${ev.detail ? ` — ${ev.detail}` : ""}`,
+      `- ${new Date(ev.createdAt).toLocaleString()} - **${ev.action}**${ev.detail ? ` - ${ev.detail}` : ""}`,
     );
   }
   return lines.join("\n");

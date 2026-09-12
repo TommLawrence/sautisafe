@@ -2,8 +2,8 @@
 // Offline draft queue for SautiSafe reports. Uses IndexedDB (not localStorage)
 // because audio Blobs exceed localStorage's 5 MB quota.
 //
-// When a report submit fails (or the device is offline), the full report —
-// including the recorded audio Blob — is saved here and retried when
+// When a report submit fails (or the device is offline), the full report -
+// including the recorded audio Blob - is saved here and retried when
 // connectivity returns or the app reopens. This is the core "works offline"
 // PWA behaviour the brief requires.
 

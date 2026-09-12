@@ -35,7 +35,7 @@ export function AboutTab() {
             SautiSafe is a code-switched voice reporting assistant for industrial
             safety incidents and near misses. Workers in factories, construction,
             warehouses, transport, mining, and field operations often report hazards
-            verbally because formal written reports are slow and intimidating — and
+            verbally because formal written reports are slow and intimidating - and
             because they naturally mix English with Luganda, Swahili, or another local
             language. SautiSafe transcribes that speech, extracts structured safety
             fields, asks focused follow-ups when information is missing, flags urgent
@@ -99,7 +99,7 @@ export function AboutTab() {
           <p>
             SautiSafe supports workers who communicate better verbally, in the languages
             they actually use. It enforces explicit consent before recording, restricts
-            access to audio and transcripts, and follows non-retaliation principles —
+            access to audio and transcripts, and follows non-retaliation principles -
             reporting a hazard should never put a worker at risk.
           </p>
           <p>
@@ -110,7 +110,7 @@ export function AboutTab() {
           <p>
             Urgent-risk detection is an aid, not an emergency procedure. When the system
             detects language like fire, chemical exposure, electrocution, uncontrolled
-            pressure, injury, or gas leak, it flags the report for immediate human review —
+            pressure, injury, or gas leak, it flags the report for immediate human review -
             it never acts on it automatically.
           </p>
         </CardContent>
@@ -131,19 +131,19 @@ export function AboutTab() {
           <p>
             <strong>Speech provider (primary):</strong> Intron Voice (the Sahara Speech API)
             via <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">/file/v1/upload/sync</code>{" "}
-            with async-poll fallback. Code-switched Luganda–English (<code className="font-mono">lg</code>) and
-            Swahili–English (<code className="font-mono">sw</code>) models.
+            with async-poll fallback. Code-switched Luganda-English (<code className="font-mono">lg</code>) and
+            Swahili-English (<code className="font-mono">sw</code>) models.
           </p>
           <p>
             <strong>Reliability fallback:</strong> if the Intron key is not set or a call
             errors, product-mode transcription transparently falls back to the z-ai ASR
-            (clearly tagged on every transcript). Benchmark mode never substitutes — a
+            (clearly tagged on every transcript). Benchmark mode never substitutes - a
             failed Sahara lane reports its real error.
           </p>
           <p>
             <strong>Benchmark dataset:</strong> SautiSafe uses a small, consented, original
-            set of ~20–40 English–Luganda/Swahili industrial scenarios across clean, noisy,
-            accented, rapid, and heavy-code-switch difficulty groups — not the organisers&apos;
+            set of ~20-40 English-Luganda/Swahili industrial scenarios across clean, noisy,
+            accented, rapid, and heavy-code-switch difficulty groups - not the organisers&apos;
             evaluation dataset. Each sample&apos;s reference transcript is manually verified.
             This is a small evaluation sample, explicitly not representative of every
             Ugandan or East African worker.
@@ -200,7 +200,7 @@ const SAFEGUARDS = [
   { icon: ServerOff, title: "No silent fallback in benchmark", body: "If a speech provider key is missing, that benchmark lane reports a clear error instead of substituting another model." },
   { icon: Users, title: "Human transcript confirmation", body: "Supervisors confirm the transcript and structured fields before a report is finalised." },
   { icon: KeyRound, title: "Secrets never reach the browser", body: "Speech-provider keys live only in deployment environment variables, never in the frontend bundle." },
-  { icon: ScrollText, title: "Append-only audit trail", body: "Every meaningful action — recorded, transcribed, extracted, reviewed, escalated — is logged immutably." },
+  { icon: ScrollText, title: "Append-only audit trail", body: "Every meaningful action - recorded, transcribed, extracted, reviewed, escalated - is logged immutably." },
 ];
 
 const NEVER_DO = [

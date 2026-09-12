@@ -1,4 +1,4 @@
-// Speech benchmark metrics — mirrors convex/lib/metrics.ts exactly.
+// Speech benchmark metrics - mirrors convex/lib/metrics.ts exactly.
 // Pure functions, safe for client or server. Keep both copies in sync.
 
 /** Industrial safety critical terms that MUST survive transcription. */
@@ -103,11 +103,11 @@ export function computeAllMetrics(
 }
 
 export function pct(x: number | null | undefined): string {
-  if (x === null || x === undefined || Number.isNaN(x)) return "—";
+  if (x === null || x === undefined || Number.isNaN(x)) return "-";
   return `${(x * 100).toFixed(1)}%`;
 }
 
 export function ms(x: number | null | undefined): string {
-  if (x === null || x === undefined || Number.isNaN(x)) return "—";
+  if (x === null || x === undefined || Number.isNaN(x)) return "-";
   return `${Math.round(x)}ms`;
 }

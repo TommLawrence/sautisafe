@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       console.error("[/api/transcribe] audio persist failed", e);
     }
 
-    // 1) Real Intron (Sahara) — preferred.
+    // 1) Real Intron (Sahara) - preferred.
     if (isIntronConfigured()) {
       try {
         const result = await transcribeWithIntron({

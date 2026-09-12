@@ -43,9 +43,9 @@ export async function runBenchmarkLanes(
   const results: BenchmarkResult[] = [];
   const criticalTerms = DEFAULT_CRITICAL_TERMS;
 
-  // Lane 1 — Sahara (Intron).
+  // Lane 1 - Sahara (Intron).
   if (!isIntronConfigured()) {
-    results.push(emptyLane("sahara", "INTRON_API_KEY not set — add it to .env to run the real Sahara lane"));
+    results.push(emptyLane("sahara", "INTRON_API_KEY not set - add it to .env to run the real Sahara lane"));
   } else {
     try {
       const r = await transcribeWithIntron({ audioBlob, fileName, language });
@@ -56,9 +56,9 @@ export async function runBenchmarkLanes(
     }
   }
 
-  // Lane 2 — Whisper (OpenAI).
+  // Lane 2 - Whisper (OpenAI).
   if (!isWhisperConfigured()) {
-    results.push(emptyLane("whisper", "OPENAI_API_KEY not set — add it to .env to run the real Whisper lane"));
+    results.push(emptyLane("whisper", "OPENAI_API_KEY not set - add it to .env to run the real Whisper lane"));
   } else {
     try {
       const r = await transcribeWithWhisper({ audioBlob, fileName, language });
@@ -69,9 +69,9 @@ export async function runBenchmarkLanes(
     }
   }
 
-  // Lane 3 — Gemini (gemini-3.8-flash).
+  // Lane 3 - Gemini (gemini-3.8-flash).
   if (!isGeminiConfigured()) {
-    results.push(emptyLane("gemini", "GEMINI_API_KEY not set — add it to .env to run the real Gemini lane"));
+    results.push(emptyLane("gemini", "GEMINI_API_KEY not set - add it to .env to run the real Gemini lane"));
   } else {
     try {
       const r = await transcribeWithGemini({ audioBlob, fileName, language });
