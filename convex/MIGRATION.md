@@ -37,7 +37,7 @@ and a uniqueness check inside `createIncident`, relations are stored as
 | -------------------------- | ------------------------- |
 | `String`                   | `v.string()`              |
 | `String?`                  | `v.optional(v.string())`  |
-| `Int` / `Int?`             | `v.int64()` / `v.optional(v.int64())` |
+| `Int` / `Int?`             | `v.number()` / `v.optional(v.number())` (browser-safe JS numbers) |
 | `Float` / `Float?`         | `v.float64()` / `v.optional(v.float64())` |
 | `Boolean` / `Boolean?`     | `v.boolean()` / `v.optional(v.boolean())` |
 | `DateTime` / `DateTime?`   | `v.number()` (unix ms) / `v.optional(v.number())` |

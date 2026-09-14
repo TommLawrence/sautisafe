@@ -12,7 +12,8 @@
 //     explicitly with `Date.now()`.
 //   * Nullable fields use `v.optional(...)`.
 //   * `confidence` is `v.float64()` (decimal 0..1).
-//   * Integer counts/sizes/durations/latencies use `v.int64()`.
+//   * Numeric counts/sizes/durations/latencies use `v.number()` so browser
+//     clients can send ordinary JavaScript numbers.
 //   * Relations use `v.id("tableName")` (note: Convex uses the table name
 //     from the schema key, e.g. `workers`, not the Prisma model name).
 //
@@ -48,8 +49,8 @@ export default defineSchema({
     // --- Raw voice inputs ---
     audioFileName: v.optional(v.string()),
     audioMimeType: v.optional(v.string()),
-    audioSizeBytes: v.optional(v.int64()),
-    audioDurationSec: v.optional(v.int64()),
+    audioSizeBytes: v.optional(v.number()),
+    audioDurationSec: v.optional(v.number()),
     audioStoragePath: v.optional(v.id("_storage")), // persisted audio blob (for re-transcription / benchmark)
     rawTranscript: v.optional(v.string()), // primary transcript (final chosen)
 
@@ -110,9 +111,9 @@ export default defineSchema({
     provider: v.string(), // "sahara" | "whisper" | "gemini" | "zai-asr"
     text: v.string(),
     language: v.optional(v.string()),
-    durationMs: v.optional(v.int64()),
-    latencyMs: v.optional(v.int64()),
-    wordCount: v.optional(v.int64()),
+    durationMs: v.optional(v.number()),
+    latencyMs: v.optional(v.number()),
+    wordCount: v.optional(v.number()),
     confidence: v.optional(v.float64()),
     isPrimary: v.boolean(),
     createdAt: v.number(),

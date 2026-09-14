@@ -75,11 +75,11 @@ export const extractSafetyFields = action({
     transcript: v.string(),
   },
   handler: async (ctx, { transcript }): Promise<ExtractedFields> => {
-    const base = process.env.LLM_API_BASE;
-    const key = process.env.LLM_API_KEY;
-    if (!base || !key) {
+    const base = process.env.LLM_API_BASE ?? "https://api.openai.com/v1";
+    const key = process.env.LLM_API_KEY ?? process.env.OPENAI_API_KEY;
+    if (!key) {
       throw new Error(
-        "LLM extraction provider not configured: set LLM_API_BASE and LLM_API_KEY.",
+        "LLM extraction provider not configured: set OPENAI_API_KEY or LLM_API_KEY.",
       );
     }
 

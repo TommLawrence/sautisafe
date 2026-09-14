@@ -104,7 +104,7 @@ export const saveAudio = mutation({
     storageId: v.id("_storage"),
     fileName: v.string(),
     mimeType: v.string(),
-    sizeBytes: v.int64(),
+    sizeBytes: v.number(),
   },
   handler: async (ctx, args): Promise<{
     storageId: Id<"_storage">;
