@@ -20,6 +20,7 @@ export interface Incident {
   referenceNo: string;
   workerId?: string | null;
   worker?: { id: string; displayName?: string | null; role?: string | null; department?: string | null } | null;
+  reportedBy?: string | null;
   audioFileName?: string | null;
   audioMimeType?: string | null;
   audioSizeBytes?: number | null;

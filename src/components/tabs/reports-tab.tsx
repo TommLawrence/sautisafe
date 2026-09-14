@@ -168,6 +168,11 @@ export function ReportsTab() {
                         {inc.location || "Location not specified"}
                         {inc.equipment ? ` · ${inc.equipment}` : ""}
                       </p>
+                      {inc.reportedBy && (
+                        <p className="text-[11px] text-muted-foreground">
+                          by {inc.reportedBy}
+                        </p>
+                      )}
                       <p className="text-[11px] font-medium text-primary sm:hidden">
                         Tap to review →
                       </p>
@@ -285,7 +290,7 @@ function ReviewSheet({
           </div>
           <SheetDescription>
             {inc
-              ? `Reported ${timeAgo(inc.createdAt)} · ${STATUS_LABELS[inc.status] ?? inc.status}`
+              ? `Reported ${timeAgo(inc.createdAt)}${inc.reportedBy ? ` by ${inc.reportedBy}` : ""} · ${STATUS_LABELS[inc.status] ?? inc.status}`
               : "Reviewing incident report"}
           </SheetDescription>
         </SheetHeader>

@@ -128,6 +128,7 @@ export function ReportTab() {
   const saveMut = useMutation({
     mutationFn: async () => {
       const body = {
+        reportedBy: draft.reportedBy ?? null,
         audioFileName: captured?.fileName ?? draft.audioFileName,
         audioMimeType: captured?.mimeType ?? draft.audioMimeType,
         audioSizeBytes: captured?.sizeBytes ?? draft.audioSizeBytes,
@@ -178,6 +179,7 @@ export function ReportTab() {
           await putDraft({
             id,
             audioBlob: captured.wavBlob,
+            reportedBy: draft.reportedBy ?? null,
             audioFileName: captured.fileName,
             audioMimeType: captured.mimeType,
             audioSizeBytes: captured.sizeBytes,
@@ -267,6 +269,16 @@ export function ReportTab() {
               included in benchmark material.
             </span>
           </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="reportedBy">Your name <span className="text-muted-foreground">(optional, shown to your supervisor)</span></Label>
+            <Input
+              id="reportedBy"
+              value={draft.reportedBy ?? ""}
+              onChange={(e) => setDraft({ reportedBy: e.target.value })}
+              placeholder="e.g. John M."
+              className="h-10"
+            />
+          </div>
         </CardContent>
       </Card>
 

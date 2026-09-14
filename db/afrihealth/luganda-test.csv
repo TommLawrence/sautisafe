@@ -1,0 +1,70 @@
+idx,user_ids,accent,age_group,country,transcript,nchars,audio_ids,audio_paths,duration,origin,domain,split,gender
+129184,9d8db954e680843a47c3b7e224f12371,luganda,26-40,UG,"Since the degree of effect produced by a drug is generally a function of the amount administered, we can express this relationship in terms of a dose-response curve.",162,b13c07b3740c998c7021bafa0c86331c,/AfriSpeech-100/test/7ce32977-b330-43c0-bae0-7ad575569b8b/3b8e53279d6c00fb74e04963358b4e41.wav,12.985986394557823,african,clinical,test,Female
+129191,9d8db954e680843a47c3b7e224f12371,luganda,26-40,UG,"Theapplication of cold therapy reduces bleeding and hematoma formation.
+",71,0b698a4e9ec659918686f249a1428360,/AfriSpeech-100/test/53281931-6a9c-48c0-bc2c-f046ab0a110b/1a1f5ddf3eb6153c30b72803b2062410.wav,6.818979591836735,african,clinical,test,Female
+21636,7847d1c61acea980f83395cfbd9aa6d0,luganda,26-40,UG,"In addition, the cappedvenous access device will remain patent.",63,b39367095d5813e47ca39953c2b0af94,/AfriSpeech-100/test/94a04f28-1072-46b6-b577-d497629520fc/3ed70d9c5e09b0a93a9fb2bc2364b783.wav,5.693990929705215,african,clinical,test,Female
+130148,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"But the refs ruled him out of bounds.
+",37,1bf67b92f943c2a3b90c477a0c2c304b,/AfriSpeech-100/test/7eb05004-1962-4397-9a18-3cff9a8e456d/5728572df06d680f491cc182e856d64e.wav,3.746984126984127,african,general,test,Male
+130106,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"Kaduna took the worst beating.
+",30,839cea23e53080066d7f5f2f3cd54195,/AfriSpeech-100/test/6736efb7-15ea-4ad2-9476-d2861ed27969/43ba5c8bcc7074a9cb69c772d0a22eb4.wav,1.7959863945578232,african,general,test,Female
+129989,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"We have Ronaldo, Messi and what have you.
+",41,9856fed682b3e9ea10ad10d7bb1bc7ba,/AfriSpeech-100/test/0d394e17-2656-4a7a-97ed-3419f2536d22/6521e811a1e2bd2f1363830e8ab12055.wav,2.82,african,general,test,Female
+153978,494d6639511c7ae3fd56be73d5993f84,luganda,19-25,UG,"Especially those fools and idiots who work in the legacy news media, and who have been determined to unfairly attack the president at every opportunity.
+",152,ed431f614a6b899a9633353e97b6c94f,/AfriSpeech-100/test/23db81bc-62cf-4e1c-ad30-fc3714cdf256/93d42de6c6e9ddb138cd3a64929cd99c.wav,9.406984126984126,african,general,test,Male
+21604,7847d1c61acea980f83395cfbd9aa6d0,luganda,26-40,UG,"Here again there are two receptor subclasses, 1 and 2 , which mediate different effects.",88,0531d45284a765e28b0292bb913dbbd5,/AfriSpeech-100/test/3ea06679-86c8-488c-a2b8-eb58a8ec2cba/7b0be49553056d784b28c5b73871ecfc.wav,6.658979591836735,african,clinical,test,Female
+150822,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"The dumping is evident at a place called Middle Dam, Line Top one the left side.
+",80,f9daa31e77a455aeffa084fccdf31889,/AfriSpeech-100/test/50b6d6b2-0aa5-4f94-8c7d-3b1c682c4d19/d1e3b23d2a89ac68487222e3e6766c8a.wav,7.087981859410433,african,general,test,Female
+154612,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"Patients may present withfeatures of malabsorption or may have atypical presentationin the form of migratory polyarthritis, neurologicaldisturbances and focal hyperpigmentation of the skin.
+",189,c5dcfd61cebe5127b58acd370f06795d,/AfriSpeech-100/test/630bca1c-d029-448e-b86a-da49e88c1f27/7fd30e298d4e1f52fcc70bdff72f5019.wav,14.043990929705217,african,clinical,test,Male
+150813,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"With the Stay Home, Stay Healthy order still in place for another week, many students are trying.
+",97,2801517d42192c4ce9802757b13d2900,/AfriSpeech-100/test/fb141e11-7b7a-42fd-8a94-6606cdc25e3f/0f7efcc556f594c661b14b21b109b866.wav,7.734988662131518,african,general,test,Female
+21637,7847d1c61acea980f83395cfbd9aa6d0,luganda,26-40,UG,"The cytoskeleton consists of a dense mesh of microtubules and neurofibrils bundles of actin filaments, which compartmentalize the rough ER into dark staining regions called chromatophilic 8 substance fig.",202,d0ef1ff3a0effda87dada3268b112f28,/AfriSpeech-100/test/1e4fe642-af75-42ff-bbfa-59da0d613358/893e41364521e7c7eddd34b70b3790ee.wav,15.096984126984127,african,clinical,test,Female
+150810,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"You can make it big without a record label but you just have to know how it works.
+",82,89329d8ccf699d749378e316d5da474d,/AfriSpeech-100/test/dcc297b6-07b5-42f5-a1e3-01a98f7b255e/4ecba47b9d91ee73d2e1326a28a6472e.wav,5.772993197278912,african,general,test,Female
+154682,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,Lipomas occur most often in 4th to 5th decades of life and are frequent in females.,82,68fe7352749aeb5b9c101b14b2aa35ed,/AfriSpeech-100/test/96cd3179-db40-48c6-8539-6f2fdb2f4ec8/c59f6372d620f2ccf2676caaef02200d.wav,9.368979591836736,african,clinical,test,Female
+150826,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"This doesnt sound good for the short term, and investors expect a blow to economic data.
+",88,421108af04282b1c8d76624a821801f4,/AfriSpeech-100/test/2e6345a5-184c-4adb-903a-cf824f8822c5/fea13bfdca3e54eac25af8100142440f.wav,7.222993197278911,african,general,test,Female
+154678,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"discuss the causes and effects of strokes and transient ischemic attacksc.
+",74,ddcdc4345e335deb38df805bc1da429f,/AfriSpeech-100/test/00c9a153-6eb3-4e81-9e94-eac319f3613a/e27b1f6ad214a593be2bb95883cb80da.wav,5.242993197278912,african,clinical,test,Male
+130126,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"Effects and cultural references
+",31,efe0c8230040addb8aa1e3551979adfc,/AfriSpeech-100/test/bc5e3ae1-2a5a-40df-9d58-0b7c0e3a1ca0/0a4fda9a6dfeb3d93f0e95d8d58f3327.wav,1.6669841269841268,african,general,test,Female
+150816,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"However, it is worth noting that the MacBook Pro is only slightly heavier than the MacBook Air, so both models will be very similar in terms of portability.
+",156,0dde814ae1ff99d4ca813bdd871f736c,/AfriSpeech-100/test/7ee971b0-cb68-41ef-a21e-62f3cdfc3b98/9a533b71770ac16d9d55d62c1e3b4052.wav,11.651995464852607,african,general,test,Female
+153594,f457865a08fdceacedc8bec86dc7a1ab,luganda,,UG,Some studies suggest that single daily dosing may actually be less nephrotoxic than more frequent dosing.,105,d727cb228bfb82dc10370e69da857b78,/AfriSpeech-100/test/95fc3b74-02b0-4a7e-88ae-89fe250026e7/fa956b4df79a77a29213e8fdec83c743.wav,7.081995464852607,african,clinical,test,Female
+154665,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"Figure Activation of platelets during haemostatic plug formation and thrombogenesis.
+",84,fd6d38f0b2ba6e12562b2d17d632a01d,/AfriSpeech-100/test/14aa52fe-2b0a-4d0f-80d3-d1ca731ae295/b170fe397a0ae6c440a70f205af234c4.wav,6.060997732426304,african,clinical,test,Male
+151943,ce5d125564dcd464deeb3202547e6f2d,luganda,19-25,UG,Remove cap of pre packaged enema solution.,41,3d9da7171ebf0a9d9028f948d54cb23c,/AfriSpeech-100/test/4d984575-2e4f-4e37-b66d-abac0eb06c54/6e33ad62bcdb8dec9065feeee75b3509.wav,4.136984126984127,african,clinical,test,Female
+592505,953182bd1c87777c390ee52f7edf6afb,luganda,26-40,KE,RESPIRATORY CARE NOTEBaby Egekeze remains on NP CPAP 6 FIO2 21-26%.,67,af5f2da0663d092104720d05196faacc,/AfriSpeech-100/test/7eef9543-9e2a-4e83-a35e-c75e623e925f/f7a9001d38490529372c5aeabb6ca2a3.wav,11.710997732426303,african,clinical,test,Female
+130353,9d8db954e680843a47c3b7e224f12371,luganda,26-40,UG,Spreading the skin taut over the injection site.,48,61529bbe416dc35feb15c48b9ef9324b,/AfriSpeech-100/test/75530dd4-3c9f-48de-97af-191536eb8e47/936492c5f83b7b72698d1483bfad0a12.wav,2.778979591836735,african,clinical,test,Female
+153615,f457865a08fdceacedc8bec86dc7a1ab,luganda,,UG,Have a second person immobilize the cervical spine.,51,d065e8ecb645453b0920a2fd385991bb,/AfriSpeech-100/test/53699488-48b2-43e1-b8a0-a46ef9f5bf9b/08548c313161ae7297e897884b8d5be4.wav,4.113990929705215,african,clinical,test,Male
+81146,f2260544a72cfcc4e81ca13df3a544cc,luganda,26-40,UG,"Many antibiotics alter the enteric microbial flora, particularly if high concentrations reach the colon.",102,4dffc6bc0676e9b6138b3659a053f0ed,/AfriSpeech-100/test/fdb019ad-ae08-4648-b462-7ab2d5c81acc/1259b4fa8e2a2beafc1c9a977f899def.wav,9.316984126984126,african,clinical,test,Female
+15059,8fee211e39db349848edd0f39e71293d,luganda,19-25,UG,Government and public services,30,e7d022c5903b8eca11a16e879a469436,/AfriSpeech-100/test/195285bd-84f4-433f-8d07-85fdd2e5f60a/fd393e049fb0a7c9d43e2fbce9c1ef64.wav,2.140997732426304,african,general,test,Male
+592553,953182bd1c87777c390ee52f7edf6afb,luganda,26-40,KE,28-02-2016 1900 - 0700Neuro: arouses to stimuli.,48,7f5663eb78e213416a519bda9e5f004a,/AfriSpeech-100/test/d47067f8-6528-4c1c-a35a-2938849607ad/467e2b8b642ea91a812d2021bed7f3f2.wav,11.478979591836731,african,clinical,test,Female
+154675,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"Option E has no apparent bearing on the rate of rise of the alveolar partial pressure in the brain, alveolus, or any other tissue.",123,18145e1d8eb5f33f3d0ddd3f91352f5f,/AfriSpeech-100/test/8a69b98f-9b4d-4829-8216-06d50b031b59/11daed5499c4e8195bea9fafacaf3e06.wav,8.545986394557824,african,clinical,test,Female
+150812,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"Release and radio history
+",25,161da8d5d9334c66c1cfbfef146f817d,/AfriSpeech-100/test/f19c71b7-91f0-4bbf-82b6-803d83e841e0/b608fda9081b26c261a369eba67da3a2.wav,2.092993197278912,african,general,test,Female
+154582,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"The disturbance arose over the whereabouts of a certain sum of 50, 000.
+",71,4fc0847e90e48d4557f0e494b260beeb,/AfriSpeech-100/test/15257c40-8292-402d-8447-a488b4331c1b/220b25bfaf4c20fe9ca53b7e79e439f3.wav,5.876984126984127,african,general,test,Male
+130064,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"He may be a bad guy from yesteryear but his propensity for playing the long game, using others as his pawns and knights, makes him extremely dangerous.
+",151,f30caddda23332f7f6cac0bca53727ea,/AfriSpeech-100/test/1aa60be7-c0b9-4723-ad83-d46800aab9d8/d5dd42ea3acfc2dedfa37b75d3996b13.wav,10.238979591836737,african,general,test,Male
+592651,953182bd1c87777c390ee52f7edf6afb,luganda,26-40,KE,Continue to monitor for S and S of hypothyroidism.,50,6142024bf44c67d996b94080fa408da9,/AfriSpeech-100/test/0934bb89-19dd-42e6-a131-2adea9c03d81/d13612783fa14082a5a9ff059c0f08f6.wav,4.477981859410432,african,clinical,test,Female
+154690,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"Box 12-2 summarizes guidelines for care of the patient with a urinary diversion.
+",80,035836ee284849df9969d1dd62f025f6,/AfriSpeech-100/test/e2d0d466-5068-450a-9eb7-e169c4f86071/a6faaae4308fa506c98fe0576dba946c.wav,6.33498866213152,african,clinical,test,Male
+150819,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"She was transferred to Hospital Nakuru for further care, as Dr Bosafi Lashee suggested
+",86,1bad4b4582f0d63260585231c6a1d2e3,/AfriSpeech-100/test/c4881709-2764-4299-ba27-11823194028c/476a9e3f6372f7481ead56973de9cfc9.wav,7.554988662131518,african,general,test,Female
+150823,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"Afterwards, singer Mariah Carey, accompanied by the Boston Pops Orchestra, performed the national anthem.
+",105,03c3df968bd2019358dbfb7e5808e03b,/AfriSpeech-100/test/da475c85-9fa5-47de-bd28-fad949e4e406/e0bd8c92ce8250bc3b9bddaae9a540cf.wav,9.376984126984128,african,general,test,Female
+21625,7847d1c61acea980f83395cfbd9aa6d0,luganda,26-40,UG,No such diuretic exists.,24,5a34597c9b5e97c136c6b15e1f47350b,/AfriSpeech-100/test/415f382a-973c-49a0-bce0-509d508b2e9f/fcff877202f1373168fd346312890b4f.wav,3.173990929705216,african,clinical,test,Female
+15033,8fee211e39db349848edd0f39e71293d,luganda,19-25,UG,Usually that is not good news for the crew.,43,b4c4172124a303628388531b523fe2d7,/AfriSpeech-100/test/04db55e6-53b3-4211-8228-6406b4687630/50093e343ac696ed0e88cd1821489420.wav,3.121995464852608,african,general,test,Male
+130039,c98f481b20ae976e311ad9c13ff218fb,luganda,26-40,UG,"There are also two private dining areas upstairs, the Champagne and Chateau rooms.
+",82,3813222b28309e96e16bf4b315ee106c,/AfriSpeech-100/test/4ea2aee7-4aad-41c4-86ea-94c0c01ae45f/25dfa7b27727394d918d5cbf5c5eb702.wav,5.20498866213152,african,general,test,Male
+154645,8d39c439c3b9afb406d05ef235881c5f,luganda,26-40,BW,"Quinolones are important recent additions to thetherapeutic agents used against M.
+",82,6670fa5d797109cd07d35761ebfdb38c,/AfriSpeech-100/test/844ec13c-0b66-43f4-a42d-57a9ab8c5196/efda06adbc8d1b8cda1dda06632b15c1.wav,6.933990929705216,african,clinical,test,Male
+21605,7847d1c61acea980f83395cfbd9aa6d0,luganda,26-40,UG,They are fungicidal at high concentrations.,43,04a041c8c7f0c63c42e21c23b4739a33,/AfriSpeech-100/test/7fcc7136-7ccb-43af-b433-817b80d23992/9e16979b2f950244cbc03c9f76be7476.wav,3.351995464852608,african,clinical,test,Female
+152763,ef40a1939a65f997b944b648c3c5b4f1,luganda,26-40,UG,"Below are six ways to achieve that ever-elusive, flawless finish.
+",65,908936a52db974cb0034493c275db163,/AfriSpeech-100/test/4c1d9832-4713-4bf9-a6cf-e7864c7349ca/84bc9f332a8ed62e889e40632750f165.wav,6.580997732426304,african,general,test,Female
+296263,9d8db954e680843a47c3b7e224f12371,luganda,26-40,UG,"The Patriots now own the most 2020 draft picks with 13 total selections.
+",73,4310a702b7ac29fcf3fa520afa74faa6,/AfriSpeech-100/test/03b5268b-67d4-4b62-97f5-23f8bb52d2df/72b42051264da9d2943a69ef6a09d3c5.wav,7.845,african,general,test,Male
+296196,9d8db954e680843a47c3b7e224f12371,luganda,26-40,UG,"This period started in August 1177 and ended in July 1181.
+",59,f5424d3e63340aed26709d1d9393fc28,/AfriSpeech-100/test/c71b37a8-3af5-4b26-b4c1-539ed7a4a7b2/0c15661184d0e4af921a8bf7c2aef9ff.wav,10.26,african,general,test,Male
+1019986,953182bd1c87777c390ee52f7edf6afb,luganda,26-40,KE,A CT of head was also obtained in the emergency department which was notable for no evidence of intracranial hemorrhage.,120,66b5e37d3c6fb622de9b645a11e45b87,/AfriSpeech-100/test/edf11cbf-25de-4dc8-8ac2-437a94eb3422/2e7023863fce4085b6b29f15e993e03f.wav,9.0,african,clinical,test,Female

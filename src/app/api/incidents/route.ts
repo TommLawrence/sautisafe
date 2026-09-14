@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       audioSizeBytes,
       audioDurationSec,
       audioStoragePath,
+      reportedBy,
       transcript,
       transcriptLatencyMs,
       transcriptProvider,
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
       audioSizeBytes?: number | null;
       audioDurationSec?: number | null;
       audioStoragePath?: string | null;
+      reportedBy?: string | null;
       transcript?: string | null;
       transcriptLatencyMs?: number | null;
       transcriptProvider?: string | null;
@@ -140,6 +142,7 @@ export async function POST(req: Request) {
         audioSizeBytes: audioSizeBytes ?? null,
         audioDurationSec: audioDurationSec ?? null,
         audioStoragePath: audioStoragePath ?? null,
+        reportedBy: reportedBy ?? null,
         rawTranscript: transcript ?? null,
         location: fields?.location || null,
         equipment: fields?.equipment || null,

@@ -8,6 +8,7 @@ export type Role = "supervisor" | "technician";
 interface ReportDraft {
   incidentId?: string | null;
   referenceNo?: string | null;
+  reportedBy?: string | null;
   audioBlobUrl?: string | null;
   audioFileName?: string | null;
   audioMimeType?: string | null;

@@ -156,6 +156,24 @@ export const SAMPLE_SCENARIOS: SampleScenario[] = [
     referenceText:
       "Arc flash on the isolator while maintenance was working one worker got a minor burn on the hand we shut down and locked out the panel",
   },
+  {
+    id: "s5",
+    label: "Afrispeech-200 Luganda reference (real, clinical)",
+    transcript:
+      "Since the degree of effect produced by a drug is generally a function of the amount administered, we can express this relationship in terms of a dose-response curve.",
+    difficulty: "accent",
+    referenceText:
+      "Since the degree of effect produced by a drug is generally a function of the amount administered we can express this relationship in terms of a dose-response curve",
+  },
+  {
+    id: "s6",
+    label: "Afrispeech-200 Swahili reference (real, clinical)",
+    transcript:
+      "There is some evidence that drug allergies are more common in older people, in women and in those with a previous history of allergy.",
+    difficulty: "accent",
+    referenceText:
+      "There is some evidence that drug allergies are more common in older people in women and in those with a previous history of allergy",
+  },
 ];
 
 /** Human-friendly reference-number generator: SSA-YYYY-NNNN */

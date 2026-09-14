@@ -16,6 +16,7 @@ const VERSION = 1;
 export interface DraftReport {
   id: string;
   audioBlob: Blob;
+  reportedBy: string | null;
   audioFileName: string;
   audioMimeType: string;
   audioSizeBytes: number;
@@ -131,6 +132,7 @@ export interface RetryOutcome {
 export async function retryDraft(draft: DraftReport): Promise<RetryOutcome> {
   try {
     const body = {
+      reportedBy: draft.reportedBy,
       audioFileName: draft.audioFileName,
       audioMimeType: draft.audioMimeType,
       audioSizeBytes: draft.audioSizeBytes,

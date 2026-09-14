@@ -97,7 +97,7 @@ export function BenchmarkTab() {
     if (s) {
       setReference(s.referenceText);
       // match the Sahara lane language to the scenario's code-switch profile
-      const langFor: Record<string, string> = { s1: "lg", s2: "en", s3: "sw", s4: "en" };
+      const langFor: Record<string, string> = { s1: "lg", s2: "en", s3: "sw", s4: "en", s5: "lg", s6: "sw" };
       if (langFor[id]) setLanguage(langFor[id]);
     }
   }

@@ -63,6 +63,8 @@ export async function POST(req: Request) {
           s2: { label: "Chemical spill (English)", lang: "en" },
           s3: { label: "Forklift near-miss (Swahili+EN)", lang: "sw" },
           s4: { label: "Arc flash (technical EN)", lang: "en" },
+          s5: { label: "Afrispeech-200 Luganda (real)", lang: "lg" },
+          s6: { label: "Afrispeech-200 Swahili (real)", lang: "sw" },
         } as Record<string, { label: string; lang: string }>)[scenario] ?? {
           label: scenario,
           lang: "lg",

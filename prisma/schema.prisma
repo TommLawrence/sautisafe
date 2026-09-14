@@ -31,6 +31,7 @@ model Incident {
   referenceNo   String      @unique // human-friendly, e.g. SSA-2026-0001
   workerId      String?
   worker        Worker?     @relation(fields: [workerId], references: [id])
+  reportedBy    String? // technician name (free text, for the supervisor queue)
 
   // --- Raw voice inputs ---
   audioFileName String?
