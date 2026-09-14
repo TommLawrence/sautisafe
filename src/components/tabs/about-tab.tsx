@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useQuery as useConvexQuery } from "convex/react";
 import {
   ShieldCheck,
   Mic,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BrandMark } from "@/components/brand-mark";
+import { convexApi } from "@/lib/convex-api";
 
 export function AboutTab() {
   return (
@@ -205,21 +207,15 @@ const NEVER_DO = [
   "Never expose speech-provider API keys to the browser.",
 ];
 
-/** Live provider-config indicator fetched from /api/status. */
+/** Live provider-config indicator from Convex. */
 function ProviderStatus() {
-  const [status, setStatus] = React.useState<{
+  const status = useConvexQuery(convexApi.status.get, {}) as {
     intron?: { configured: boolean; baseUrl: string };
     whisper?: { configured: boolean };
     gemini?: { configured: boolean; model?: string };
     pwa?: boolean;
     offlineDrafts?: boolean;
-  } | null>(null);
-  React.useEffect(() => {
-    fetch("/api/status")
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(() => setStatus(null));
-  }, []);
+  } | undefined;
   if (!status) return null;
   return (
     <div className="flex flex-wrap gap-2">

@@ -1,6 +1,11 @@
 "use client";
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import {
+  useAction,
+  useMutation as useConvexMutation,
+  useQuery as useConvexQuery,
+} from "convex/react";
 import {
   Search,
   Filter,
@@ -52,22 +57,12 @@ import type { BenchmarkResult, Incident, IncidentStatus, Severity } from "@/lib/
 import { pct, ms } from "@/lib/metrics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-async function fetchIncidents(params: { status?: string; urgent?: string; q?: string }) {
-  const sp = new URLSearchParams();
-  if (params.status && params.status !== "all") sp.set("status", params.status);
-  if (params.urgent === "urgent") sp.set("urgent", "true");
-  if (params.q) sp.set("q", params.q);
-  const res = await fetch(`/api/incidents?${sp.toString()}`);
-  if (!res.ok) throw new Error("Failed to load reports");
-  return (await res.json()) as { incidents: Incident[] };
-}
-
-async function fetchIncident(id: string) {
-  const res = await fetch(`/api/incidents/${id}`);
-  if (!res.ok) throw new Error("Failed to load report");
-  return (await res.json()) as { incident: Incident };
-}
+import { convexApi } from "@/lib/convex-api";
+import {
+  adaptBenchmarkResult,
+  adaptIncident,
+  aggregateBenchmarkResults,
+} from "@/lib/convex-data";
 
 export function ReportsTab() {
   const [status, setStatus] = React.useState<string>("all");
@@ -75,12 +70,26 @@ export function ReportsTab() {
   const [q, setQ] = React.useState("");
   const [openId, setOpenId] = React.useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["incidents", status, urgent, q],
-    queryFn: () => fetchIncidents({ status, urgent, q }),
-  });
-
-  const incidents = data?.incidents ?? [];
+  const rawIncidents = useConvexQuery(convexApi.incidents.listIncidents, {
+    ...(status !== "all" ? { status } : {}),
+    ...(urgent === "urgent" ? { isUrgent: true } : {}),
+  }) as Record<string, any>[] | undefined;
+  const incidents = React.useMemo(() => {
+    const needle = q.trim().toLocaleLowerCase();
+    return (rawIncidents ?? [])
+      .map((incident) => adaptIncident(incident))
+      .filter((incident) =>
+        !needle ||
+        [
+          incident.referenceNo,
+          incident.location,
+          incident.equipment,
+          incident.hazard,
+          incident.rawTranscript,
+        ].some((value) => value?.toLocaleLowerCase().includes(needle)),
+      );
+  }, [rawIncidents, q]);
+  const isLoading = rawIncidents === undefined;
 
   return (
     <div className="space-y-4">
@@ -223,16 +232,17 @@ function ReviewSheet({
   incidentId: string | null;
   onClose: () => void;
 }) {
-  const qc = useQueryClient();
   const [notes, setNotes] = React.useState("");
   const [reviewer, setReviewer] = React.useState("");
   const [nextStatus, setNextStatus] = React.useState<IncidentStatus>("review");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["incident", incidentId],
-    queryFn: () => fetchIncident(incidentId!),
-    enabled: !!incidentId,
-  });
+  const rawDetail = useConvexQuery(
+    convexApi.incidents.getIncidentDetail,
+    incidentId ? { id: incidentId } : "skip",
+  ) as Record<string, any> | null | undefined;
+  const data = rawDetail ? { incident: adaptIncident(rawDetail.incident, rawDetail) } : undefined;
+  const isLoading = Boolean(incidentId) && rawDetail === undefined;
+  const updateIncident = useConvexMutation(convexApi.incidents.updateIncident);
 
   React.useEffect(() => {
     if (data?.incident) {
@@ -244,23 +254,19 @@ function ReviewSheet({
 
   const reviewMut = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/incidents/${incidentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          supervisorNotes: notes,
-          reviewedBy: reviewer,
-          status: nextStatus,
-          reviewedAt: new Date().toISOString(),
-        }),
+      if (!incidentId) throw new Error("No report selected");
+      return await updateIncident({
+        id: incidentId,
+        supervisorNotes: notes,
+        reviewedBy: reviewer,
+        status: nextStatus,
+        reviewedAt: Date.now(),
+        actionOverride:
+          nextStatus === "escalated" ? "escalated" : nextStatus === "resolved" ? "resolved" : "reviewed",
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Review failed");
-      return res.json();
     },
     onSuccess: () => {
       toast.success("Review saved");
-      qc.invalidateQueries({ queryKey: ["incidents"] });
-      qc.invalidateQueries({ queryKey: ["incident", incidentId] });
       onClose();
     },
     onError: (e: Error) => toast.error("Review failed", { description: e.message }),
@@ -311,7 +317,7 @@ function ReviewSheet({
                     incidentId={inc.id}
                     text={inc.rawTranscript}
                     hasAudio={!!inc.audioStoragePath}
-                    onBenchmarked={() => qc.refetchQueries({ queryKey: ["incident", incidentId] })}
+                    onBenchmarked={() => undefined}
                   />
                 </Section>
               )}
@@ -541,6 +547,14 @@ function EditableTranscript({
     avgCriticalTermRecall: number | null;
     avgLatencyMs: number | null;
   } | null>(null);
+  const updateIncident = useConvexMutation(convexApi.incidents.updateIncident);
+  const runBenchmark = useAction(convexApi.actions.transcribe.runBenchmark);
+  const addTranscript = useConvexMutation(convexApi.transcripts.addTranscript);
+  const saveBenchmarkRun = useConvexMutation(convexApi.benchmark.saveBenchmarkRun);
+  const detail = useConvexQuery(convexApi.incidents.getIncidentDetail, { id: incidentId }) as
+    | Record<string, any>
+    | null
+    | undefined;
 
   React.useEffect(() => {
     setDraft(text);
@@ -548,12 +562,11 @@ function EditableTranscript({
 
   const saveMut = useMutation({
     mutationFn: async (value: string) => {
-      const res = await fetch(`/api/incidents/${incidentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawTranscript: value }),
+      await updateIncident({
+        id: incidentId,
+        rawTranscript: value,
+        actionOverride: "transcript_verified",
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Save failed");
     },
     onSuccess: () => {
       setEditing(false);
@@ -567,13 +580,41 @@ function EditableTranscript({
 
   const benchMut = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/incidents/${incidentId}/benchmark`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Benchmark failed");
-      return data as {
-        results: BenchmarkResult[];
-        aggregateMetrics: typeof aggregate;
-      };
+      const incident = detail?.incident;
+      if (!incident) throw new Error("Report not found");
+      if (!incident.audioStoragePath) throw new Error("No audio is persisted for this report");
+      const referenceTranscript = String(incident.rawTranscript ?? "").trim();
+      if (!referenceTranscript) throw new Error("This report has no reference transcript");
+      const rawResults = (await runBenchmark({
+        audioStorageId: incident.audioStoragePath,
+        referenceTranscript,
+        providers: ["sahara", "whisper", "gemini"],
+        language: incident.detectedLanguage || "lg",
+      })) as Record<string, any>[];
+      const results = rawResults.map(adaptBenchmarkResult);
+      for (const result of results.filter(
+        (item) => item.success && (item.provider === "whisper" || item.provider === "gemini"),
+      )) {
+        await addTranscript({
+          incidentId,
+          provider: result.provider,
+          text: result.text,
+          ...(incident.detectedLanguage ? { language: incident.detectedLanguage } : {}),
+          ...(result.latencyMs !== null ? { latencyMs: result.latencyMs } : {}),
+          ...(result.wordCount !== null ? { wordCount: result.wordCount } : {}),
+          isPrimary: false,
+        });
+      }
+      const aggregateMetrics = aggregateBenchmarkResults(results);
+      await saveBenchmarkRun({
+        referenceNo: incident.referenceNo,
+        scenario: "Field report benchmark",
+        ...(incident.audioFileName ? { audioFileName: incident.audioFileName } : {}),
+        referenceTranscript,
+        resultsJson: JSON.stringify(rawResults),
+        aggregateMetrics: JSON.stringify(aggregateMetrics),
+      });
+      return { results, aggregateMetrics };
     },
     onSuccess: (data) => {
       setBench(data.results);

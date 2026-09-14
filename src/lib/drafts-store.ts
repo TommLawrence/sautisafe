@@ -8,6 +8,7 @@
 // PWA behaviour the brief requires.
 
 import * as React from "react";
+import { submitIncident } from "@/lib/convex-data";
 
 const DB_NAME = "sautisafe";
 const STORE = "drafts";
@@ -124,14 +125,13 @@ export interface RetryOutcome {
   error?: string;
 }
 
-/** Re-submit a single queued draft to /api/incidents. On success the draft is
- *  removed; on failure its status is set to "failed" with the error.
- *  The audio Blob is retained in the draft for verification but is not
- *  re-sent (the test instance stores transcript + metadata, not the audio
- *  bytes; production uses Convex file storage). */
+/** Re-submit a single queued draft directly to Convex. On success the draft
+ *  is removed; on failure its status is set to "failed" with the error. */
 export async function retryDraft(draft: DraftReport): Promise<RetryOutcome> {
   try {
-    const body = {
+    await updateDraftStatus(draft.id, "submitting", null);
+    const data = await submitIncident({
+      audioBlob: draft.audioBlob,
       reportedBy: draft.reportedBy,
       audioFileName: draft.audioFileName,
       audioMimeType: draft.audioMimeType,
@@ -147,18 +147,7 @@ export async function retryDraft(draft: DraftReport): Promise<RetryOutcome> {
       urgentTags: draft.urgentTags,
       consentGiven: draft.consentGiven,
       detectedLanguage: draft.detectedLanguage,
-    };
-    const res = await fetch("/api/incidents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))).error || `HTTP ${res.status}`;
-      await updateDraftStatus(draft.id, "failed", err);
-      return { id: draft.id, ok: false, error: err };
-    }
-    const data = (await res.json()) as { id: string; referenceNo: string };
     await deleteDraft(draft.id);
     return { id: draft.id, ok: true, referenceNo: data.referenceNo };
   } catch (e) {

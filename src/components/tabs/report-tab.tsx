@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useAction, useConvex, useMutation as useConvexMutation } from "convex/react";
 import {
   ShieldCheck,
   Loader2,
@@ -36,41 +37,58 @@ import { detectUrgentTags, INJURY_LABELS, INJURY_STATUSES, SEVERITIES, SEVERITY_
 import { SUPPORTED_LANGUAGES, languageLabel } from "@/lib/languages";
 import type { ExtractedFields, InjuryStatus, Severity } from "@/lib/types";
 import { toast } from "sonner";
-
-async function postTranscribe(audio: CapturedAudio, language: string) {
-  const fd = new FormData();
-  fd.append("audio", audio.wavBlob, audio.fileName);
-  fd.append("mimeType", audio.mimeType);
-  fd.append("language", language);
-  const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-  if (!res.ok) throw new Error((await res.json()).error || "Transcription failed");
-  return (await res.json()) as {
-    text: string;
-    latencyMs: number;
-    provider: string;
-    via?: string;
-    language?: string;
-    audioRef?: string | null;
-  };
-}
-
-async function postExtract(transcript: string) {
-  const res = await fetch("/api/extract", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ transcript }),
-  });
-  if (!res.ok) throw new Error((await res.json()).error || "Extraction failed");
-  return (await res.json()) as ExtractedFields;
-}
+import { convexApi } from "@/lib/convex-api";
+import { submitIncident, uploadAudio } from "@/lib/convex-data";
 
 export function ReportTab() {
   const { draft, resetDraft, setDraft, setFields, setFollowUpAnswer, setTab, role } =
     useAppStore();
   const [captured, setCaptured] = React.useState<CapturedAudio | null>(null);
+  const transcribe = useAction(convexApi.actions.transcribe.transcribeWithProvider);
+  const extractFields = useAction(convexApi.actions.extract.extractSafetyFields);
+  const convexClient = useConvex();
+  const generateUploadUrl = useConvexMutation(convexApi.audio.generateUploadUrl);
+  const saveAudio = useConvexMutation(convexApi.audio.saveAudio);
+  const createIncident = useConvexMutation(convexApi.incidents.createIncident);
+  const updateIncident = useConvexMutation(convexApi.incidents.updateIncident);
+  const addTranscript = useConvexMutation(convexApi.transcripts.addTranscript);
+  const createFollowUp = useConvexMutation(convexApi.followUps.createFollowUp);
+  const answerFollowUp = useConvexMutation(convexApi.followUps.answerFollowUp);
+  const incidentCalls = {
+    generateUploadUrl,
+    saveAudio,
+    nextReferenceNo: (args: Record<string, never>) =>
+      convexClient.query(convexApi.incidents.nextReferenceNo, args),
+    createIncident,
+    updateIncident,
+    addTranscript,
+    createFollowUp,
+    answerFollowUp,
+  };
 
   const transcribeMut = useMutation({
-    mutationFn: (audio: CapturedAudio) => postTranscribe(audio, draft.language),
+    mutationFn: async (audio: CapturedAudio) => {
+      const audioStorageId = await uploadAudio(
+        audio.wavBlob,
+        audio.fileName,
+        audio.mimeType,
+        audio.sizeBytes,
+        { generateUploadUrl, saveAudio },
+      );
+      const result = await transcribe({
+        provider: "sahara",
+        language: draft.language,
+        audioStorageId,
+      });
+      return { ...result, provider: "sahara", audioRef: audioStorageId } as {
+        text: string;
+        latencyMs: number;
+        provider: string;
+        language?: string;
+        via?: string;
+        audioRef: string;
+      };
+    },
     onSuccess: (data) => {
       setDraft({
         transcript: data.text,
@@ -93,7 +111,8 @@ export function ReportTab() {
   });
 
   const extractMut = useMutation({
-    mutationFn: () => postExtract(draft.transcript ?? ""),
+    mutationFn: () =>
+      extractFields({ transcript: draft.transcript ?? "" }) as Promise<ExtractedFields>,
     onSuccess: (data) => {
       const tags = data.urgentTags?.length ? data.urgentTags : detectUrgentTags(draft.transcript ?? "");
       setDraft({
@@ -127,7 +146,8 @@ export function ReportTab() {
 
   const saveMut = useMutation({
     mutationFn: async () => {
-      const body = {
+      return await submitIncident({
+        audioBlob: captured?.wavBlob,
         reportedBy: draft.reportedBy ?? null,
         audioFileName: captured?.fileName ?? draft.audioFileName,
         audioMimeType: captured?.mimeType ?? draft.audioMimeType,
@@ -143,14 +163,7 @@ export function ReportTab() {
         urgentTags: draft.urgentTags,
         consentGiven: draft.consentGiven,
         detectedLanguage: draft.extracted?.detectedLanguage ?? null,
-      };
-      const res = await fetch("/api/incidents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error((await res.json()).error || "Save failed");
-      return (await res.json()) as { id: string; referenceNo: string };
+      }, incidentCalls);
     },
     onSuccess: (data) => {
       if (role === "technician") {

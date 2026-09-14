@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
@@ -89,9 +90,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
-            <Toaster richColors position="top-center" />
-            <ServiceWorkerRegister />
+            <ConvexClientProvider>
+              {children}
+              <Toaster richColors position="top-center" />
+              <ServiceWorkerRegister />
+            </ConvexClientProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

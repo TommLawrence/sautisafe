@@ -1,6 +1,11 @@
 "use client";
 import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import {
+  useAction,
+  useMutation as useConvexMutation,
+  useQuery as useConvexQuery,
+} from "convex/react";
 import {
   BarChart,
   Bar,
@@ -42,6 +47,13 @@ import { pct, ms } from "@/lib/metrics";
 import type { BenchmarkResult } from "@/lib/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { convexApi } from "@/lib/convex-api";
+import {
+  adaptBenchmarkResult,
+  adaptBenchmarkRun,
+  aggregateBenchmarkResults,
+  uploadAudio,
+} from "@/lib/convex-data";
 
 const PROVIDER_COLORS: Record<string, string> = {
   sahara: "oklch(0.55 0.1 178)",
@@ -58,35 +70,53 @@ const PROVIDER_LABEL: Record<string, string> = {
 };
 
 export function BenchmarkTab() {
-  const qc = useQueryClient();
   const [audioFile, setAudioFile] = React.useState<File | null>(null);
   const [reference, setReference] = React.useState("");
   const [scenarioId, setScenarioId] = React.useState<string>("");
   const [language, setLanguage] = React.useState<string>("lg");
   const [dragOver, setDragOver] = React.useState(false);
+  const runBenchmark = useAction(convexApi.actions.transcribe.runBenchmark);
+  const generateUploadUrl = useConvexMutation(convexApi.audio.generateUploadUrl);
+  const saveAudio = useConvexMutation(convexApi.audio.saveAudio);
+  const saveBenchmarkRun = useConvexMutation(convexApi.benchmark.saveBenchmarkRun);
+  const existingRuns = useConvexQuery(convexApi.benchmark.listBenchmarkRuns, {}) as
+    | Record<string, any>[]
+    | undefined;
 
   const runMut = useMutation({
     mutationFn: async () => {
-      if (!audioFile && !reference)
+      if (!audioFile || !reference.trim())
         throw new Error("Add an audio file and a reference transcript");
-      const fd = new FormData();
-      if (audioFile) fd.append("audio", audioFile);
-      fd.append("referenceTranscript", reference);
-      if (scenarioId) fd.append("scenario", scenarioId);
-      fd.append("language", language);
-      const res = await fetch("/api/benchmark", { method: "POST", body: fd });
-      if (!res.ok) throw new Error((await res.json()).error || "Benchmark failed");
-      return (await res.json()) as {
-        runId: string;
-        referenceNo: string;
-        results: BenchmarkResult[];
-      };
+      const audioStorageId = await uploadAudio(
+        audioFile,
+        audioFile.name || "benchmark.wav",
+        audioFile.type || "audio/wav",
+        audioFile.size,
+        { generateUploadUrl, saveAudio },
+      );
+      const rawResults = (await runBenchmark({
+        audioStorageId,
+        referenceTranscript: reference.trim(),
+        providers: ["sahara", "whisper", "gemini"],
+        language,
+      })) as Record<string, any>[];
+      const results = rawResults.map(adaptBenchmarkResult);
+      const aggregateMetrics = aggregateBenchmarkResults(results);
+      const referenceNo = `SSA-${new Date().getFullYear()}-${String((existingRuns?.length ?? 0) + 1).padStart(4, "0")}`;
+      const runId = (await saveBenchmarkRun({
+        referenceNo,
+        ...(scenarioId ? { scenario: scenarioId } : {}),
+        audioFileName: audioFile.name,
+        referenceTranscript: reference.trim(),
+        resultsJson: JSON.stringify(rawResults),
+        aggregateMetrics: JSON.stringify(aggregateMetrics),
+      })) as string;
+      return { runId, referenceNo, results };
     },
     onSuccess: (data) => {
       toast.success("Benchmark complete", {
         description: `${data.results.length} lanes evaluated`,
       });
-      qc.invalidateQueries({ queryKey: ["benchmarkRuns"] });
     },
     onError: (e: Error) => toast.error("Benchmark failed", { description: e.message }),
   });
@@ -368,15 +398,11 @@ export function BenchmarkTab() {
 }
 
 function BenchmarkHistory() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["benchmarkRuns"],
-    queryFn: async () => {
-      const res = await fetch("/api/benchmark");
-      if (!res.ok) throw new Error("Failed to load runs");
-      return (await res.json()) as { runs: Array<{ id: string; referenceNo: string; scenario?: string | null; createdAt: string; results: BenchmarkResult[] }> };
-    },
-  });
-  const runs = data?.runs ?? [];
+  const data = useConvexQuery(convexApi.benchmark.listBenchmarkRuns, {}) as
+    | Record<string, any>[]
+    | undefined;
+  const runs = (data ?? []).map(adaptBenchmarkRun);
+  const isLoading = data === undefined;
 
   return (
     <Card>
