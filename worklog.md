@@ -499,3 +499,23 @@ Stage Summary:
 - .env.example is committed at the root, so it appears in the downloadable project. The user copies it to .env and adds their INTRON/OPENAI/GEMINI keys.
 - 10 test-user paragraphs are in download/test-user-paragraphs.md, ready for the 10-colleague field test.
 - WAITING ON THE USER: their HuggingFace fine-grained token (read access to datasets) to download the gated AfriHealth + AfriSwitch audio + run a real per-language benchmark. lint clean; no cron job.
+
+---
+Task ID: 50 (Vercel + Convex production migration)
+Agent: Local agent (Cursor/Claude Code) on the user's machine, supervised by Z.ai Code (this workspace)
+Task: Migrate SautiSafe from the Zcloud test instance (Next.js API routes + Prisma/SQLite) to production (Vercel + Convex). The Zcloud publish step was broken ("Sorry, there was a problem deploying the code") so the user fell back to Vercel + Convex.
+
+Work Log:
+- The migration was executed by a local agent on the user's machine (the Zcloud workspace cannot run `npx convex dev` or push to Vercel). The local agent followed the prompt in download/local-agent-setup-prompt.md + the corrections I flagged (per-report benchmark uses audioStoragePath not re-upload; drafts-store.ts retry path uses the Convex client directly not hooks).
+- Step 1: installed convex, wired ConvexClientProvider in layout.tsx, created src/lib/convex.ts + convex-client-provider.tsx. Used bun (not npm) to preserve the lockfile. Replaced the dummy URL fallback with a hard error.
+- Step 2: swapped all frontend /api/* calls to Convex hooks/actions/mutations. Created convex/status.ts (provider config query, no keys leaked). Created src/lib/convex-adapters.ts for type conversion (Convex _id -> id, numeric timestamps -> dates, nested metrics -> flat). Per-report benchmark reuses the incident's audioStoragePath. drafts-store.ts retry uses the Convex client directly. UI/styles/toasts/PWA/IndexedDB unchanged.
+- Step 3: deleted src/app/api/, removed @prisma/client + prisma, deleted src/lib/db.ts + incidents-server.ts + audio-storage.ts. Kept the shared pure-logic libs (intron.ts, providers.ts, metrics.ts, safety.ts, audio-utils.ts, store.ts, drafts-store.ts, time.ts, languages.ts).
+- The agent found + fixed 2 backend defects: (1) v.int64() rejected browser numbers (JS numbers are float64); (2) the convex extract action required undocumented LLM_* env vars instead of OPENAI_API_KEY - fixed to use the OpenAI key.
+- Deployed to Vercel: https://sauti-safe.vercel.app. Convex dev: valuable-curlew-266. Convex prod: rightful-wolverine-356.
+- Gemini: gemini-3.8-flash returned 503s; the agent changed both deployments to gemini-3.5-flash which works. The benchmark lane records 503s as a failed lane (no silent fallback).
+- Whisper works on Vercel (no geo-block). Sahara works. All three providers functional in production.
+
+Stage Summary:
+- SautiSafe is LIVE on Vercel at https://sauti-safe.vercel.app with Convex as the backend. The 10-person pilot can proceed. The user should: (1) switch Vercel's NEXT_PUBLIC_CONVEX_URL to the prod deployment (rightful-wolverine-356) so pilot data persists; (2) delete the smoke-test incident from the supervisor queue; (3) share the Vercel link + test-user-paragraphs.md with the 10 colleagues.
+- The Zcloud workspace (this environment) is now behind the GitHub repo. The source of truth is GitHub (TommLawrence/sautisafe) + the local agent's commits. The Zcloud dev server still runs the old Next.js API route version for reference.
+- Provider keys are on Convex (INTRON_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GEMINI_MODEL=gemini-3.5-flash). Vercel has only NEXT_PUBLIC_CONVEX_URL + CONVEX_DEPLOY_KEY. No keys in the browser. No cron job.
