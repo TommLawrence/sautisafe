@@ -448,3 +448,17 @@ Work Log:
 
 Stage Summary:
 - Role is now locked per session: pick once on the landing, can't switch in-app, refresh returns to the landing (good for judges trying both roles). The header shows a static role badge. The review drawer (and Terms/Privacy/offline-drafts sheets) are full-height on both views. No cron job.
+
+---
+Task ID: 47 (AfriHealth alignment: normalised + unnormalised WER/CER)
+Agent: Z.ai Code (main orchestrator)
+Task: The owner shared the official Intron AfriHealth MultiBench guide and asked whether SautiSafe "passes" and whether its benchmarking method is aligned. Aligned the metrics with AfriHealth's normalised + unnormalised WER/CER split.
+
+Work Log:
+- Added unnormalised WER + CER to src/lib/metrics.ts: wordErrorRate/charErrorRate now take a `normalised` flag (default true); computeAllMetrics returns { wer, werUnnorm, cer, cerUnnorm, criticalTermRecall, wordCount, latencyMs }. This matches AfriHealth's "WER (normalised) + WER (unnormalised) + CER (normalised) + CER (unnormalised)" reporting.
+- Threaded werUnnorm/cerUnnorm through the BenchmarkResult type, the shared benchmark-runner (per-lane + aggregate avgWerUnnorm/avgCerUnnorm), and the benchmark UI results table (columns: Provider | WER (norm) | WER (raw) | CER (norm) | CER (raw) | Recall | Latency).
+- Mirrored the same in the production convex/lib/metrics.ts (ProviderMetrics + wordErrorRate/charErrorRate normalised flag + computeAllMetrics return) so the migration stays in sync.
+- Verified: lint clean; dev restarted; agent-browser ran a benchmark -> the results table shows the WER (NORM) / WER (RAW) / CER (NORM) / CER (RAW) columns.
+
+Stage Summary:
+- HONEST ASSESSMENT for the owner (delivered in chat): SautiSafe did NOT "pass" the AfriHealth MultiBench - we did not run it on the AfriHealth dataset (we run our own benchmark runner on industrial-safety audio). Our METHOD is aligned on the ASR-transcription slice that's relevant to SautiSafe's industrial-safety use case: WER + CER (now normalised AND unnormalised) + latency + >=3 models incl. Sahara + code-switching focus (Luganda/Swahili) + critical-term recall (a SautiSafe-specific metric). We are NOT aligned on: the translation task (BLEU/chrF/AfriCOMET), the spoken-QA task (13 human-scored dimensions), the AfriHealth dataset (5,200 instances / 19 languages), the full 9-model ASR list, per-accent/SNR filtering. The domain mismatch (industrial safety vs medical) means the translation + QA tasks don't apply to SautiSafe's use case. Flagged the clarifying question: which competition is SautiSafe actually for (industrial-safety referencing Intron's framework, or the AfriHealth medical one)? The submission doc already states honestly that the benchmark uses a small consented-original sample, not the organisers' dataset. No cron job.

@@ -19,7 +19,9 @@ import type { BenchmarkResult, SpeechProvider } from "@/lib/types";
 
 export interface AggregateMetrics {
   avgWer: number | null;
+  avgWerUnnorm: number | null;
   avgCer: number | null;
+  avgCerUnnorm: number | null;
   avgCriticalTermRecall: number | null;
   avgLatencyMs: number | null;
 }
@@ -50,7 +52,7 @@ export async function runBenchmarkLanes(
     try {
       const r = await transcribeWithIntron({ audioBlob, fileName, language });
       const m = computeAllMetrics(referenceTranscript, r.text, { criticalTerms, latencyMs: r.latencyMs });
-      results.push({ provider: "sahara", text: r.text, wer: m.wer, cer: m.cer, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
+      results.push({ provider: "sahara", text: r.text, wer: m.wer, werUnnorm: m.werUnnorm, cer: m.cer, cerUnnorm: m.cerUnnorm, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
     } catch (e) {
       results.push(emptyLane("sahara", safeErr(e)));
     }
@@ -63,7 +65,7 @@ export async function runBenchmarkLanes(
     try {
       const r = await transcribeWithWhisper({ audioBlob, fileName, language });
       const m = computeAllMetrics(referenceTranscript, r.text, { criticalTerms, latencyMs: r.latencyMs });
-      results.push({ provider: "whisper", text: r.text, wer: m.wer, cer: m.cer, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
+      results.push({ provider: "whisper", text: r.text, wer: m.wer, werUnnorm: m.werUnnorm, cer: m.cer, cerUnnorm: m.cerUnnorm, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
     } catch (e) {
       results.push(emptyLane("whisper", safeErr(e)));
     }
@@ -76,7 +78,7 @@ export async function runBenchmarkLanes(
     try {
       const r = await transcribeWithGemini({ audioBlob, fileName, language });
       const m = computeAllMetrics(referenceTranscript, r.text, { criticalTerms, latencyMs: r.latencyMs });
-      results.push({ provider: "gemini", text: r.text, wer: m.wer, cer: m.cer, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
+      results.push({ provider: "gemini", text: r.text, wer: m.wer, werUnnorm: m.werUnnorm, cer: m.cer, cerUnnorm: m.cerUnnorm, criticalTermRecall: m.criticalTermRecall, latencyMs: m.latencyMs, wordCount: m.wordCount, success: true, simulated: false });
     } catch (e) {
       results.push(emptyLane("gemini", safeErr(e)));
     }
@@ -86,7 +88,9 @@ export async function runBenchmarkLanes(
   const aggregateMetrics: AggregateMetrics | null = real.length
     ? {
         avgWer: avg(real.map((r) => r.wer)),
+        avgWerUnnorm: avg(real.map((r) => r.werUnnorm)),
         avgCer: avg(real.map((r) => r.cer)),
+        avgCerUnnorm: avg(real.map((r) => r.cerUnnorm)),
         avgCriticalTermRecall: avg(real.map((r) => r.criticalTermRecall)),
         avgLatencyMs: avg(real.map((r) => r.latencyMs)),
       }
@@ -96,7 +100,7 @@ export async function runBenchmarkLanes(
 }
 
 function emptyLane(provider: SpeechProvider, error: string): BenchmarkResult {
-  return { provider, text: "", wer: null, cer: null, criticalTermRecall: null, latencyMs: null, wordCount: null, error, success: false, simulated: false };
+  return { provider, text: "", wer: null, werUnnorm: null, cer: null, cerUnnorm: null, criticalTermRecall: null, latencyMs: null, wordCount: null, error, success: false, simulated: false };
 }
 
 function avg(xs: (number | null)[]): number | null {

@@ -139,9 +139,13 @@ function levenshtein<T>(a: T[], b: T[]): number {
  *
  * Lower is better. 0 == perfect.
  */
-export function wordErrorRate(reference: string, hypothesis: string): number {
-  const refTokens = normalizeText(reference).split(" ").filter(Boolean);
-  const hypTokens = normalizeText(hypothesis).split(" ").filter(Boolean);
+export function wordErrorRate(
+  reference: string,
+  hypothesis: string,
+  normalised = true,
+): number {
+  const refTokens = (normalised ? normalizeText(reference) : reference).split(" ").filter(Boolean);
+  const hypTokens = (normalised ? normalizeText(hypothesis) : hypothesis).split(" ").filter(Boolean);
   if (refTokens.length === 0) {
     // Nothing to compare against; convention: 0 if hypothesis also empty.
     return hypTokens.length === 0 ? 0 : 1;
@@ -157,9 +161,13 @@ export function wordErrorRate(reference: string, hypothesis: string): number {
  *
  * Lower is better. 0 == perfect.
  */
-export function charErrorRate(reference: string, hypothesis: string): number {
-  const ref = normalizeText(reference);
-  const hyp = normalizeText(hypothesis);
+export function charErrorRate(
+  reference: string,
+  hypothesis: string,
+  normalised = true,
+): number {
+  const ref = normalised ? normalizeText(reference) : reference;
+  const hyp = normalised ? normalizeText(hypothesis) : hypothesis;
   if (ref.length === 0) {
     return hyp.length === 0 ? 0 : 1;
   }
@@ -202,10 +210,14 @@ export function criticalTermRecall(
  * benchmark run. Matches the shape consumed by the live Next.js benchmark UI.
  */
 export interface ProviderMetrics {
-  /** Word Error Rate, 0..1+. Lower is better. */
+  /** Normalised Word Error Rate, 0..1+. Lower is better. */
   wer: number;
-  /** Character Error Rate, 0..1+. Lower is better. */
+  /** Raw / unnormalised WER (per AfriHealth). */
+  werUnnorm: number;
+  /** Normalised Character Error Rate, 0..1+. Lower is better. */
   cer: number;
+  /** Raw / unnormalised CER. */
+  cerUnnorm: number;
   /** Fraction of critical terms recalled, 0..1. Higher is better. */
   criticalTermRecall: number;
   /** Word count of the hypothesis (post-normalization). */
@@ -231,8 +243,10 @@ export function computeAllMetrics(
   const latencyMs = Math.max(0, Math.round(opts.latencyMs ?? 0));
   const wordCount = normalizeText(hypothesis).split(" ").filter(Boolean).length;
   return {
-    wer: round4(wordErrorRate(reference, hypothesis)),
-    cer: round4(charErrorRate(reference, hypothesis)),
+    wer: round4(wordErrorRate(reference, hypothesis, true)),
+    werUnnorm: round4(wordErrorRate(reference, hypothesis, false)),
+    cer: round4(charErrorRate(reference, hypothesis, true)),
+    cerUnnorm: round4(charErrorRate(reference, hypothesis, false)),
     criticalTermRecall: round4(criticalTermRecall(reference, hypothesis, criticalTerms)),
     wordCount,
     latencyMs,

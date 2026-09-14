@@ -49,18 +49,28 @@ function levenshtein<T>(a: T[], b: T[]): number {
   return prev[n];
 }
 
-/** Word Error Rate: 0 (perfect) .. 1+ (substitutions+insertions+deletions / ref words). */
-export function wordErrorRate(reference: string, hypothesis: string): number {
-  const ref = tokenize(reference);
-  const hyp = tokenize(hypothesis);
+/** Word Error Rate: 0 (perfect) .. 1+ (substitutions+insertions+deletions / ref words).
+ *  `normalised` (default true) lowercases + strips punctuation per AfriHealth's
+ *  normalised WER; pass false for the raw/unnormalised WER. */
+export function wordErrorRate(
+  reference: string,
+  hypothesis: string,
+  normalised = true,
+): number {
+  const ref = (normalised ? tokenize(reference) : reference.split(/\s+/).filter(Boolean));
+  const hyp = (normalised ? tokenize(hypothesis) : hypothesis.split(/\s+/).filter(Boolean));
   if (ref.length === 0) return hyp.length === 0 ? 0 : 1;
   return levenshtein(ref, hyp) / ref.length;
 }
 
-/** Character Error Rate. */
-export function charErrorRate(reference: string, hypothesis: string): number {
-  const ref = normalizeText(reference).split("");
-  const hyp = normalizeText(hypothesis).split("");
+/** Character Error Rate. `normalised` (default true) applies text normalisation. */
+export function charErrorRate(
+  reference: string,
+  hypothesis: string,
+  normalised = true,
+): number {
+  const ref = (normalised ? normalizeText(reference) : reference).split("");
+  const hyp = (normalised ? normalizeText(hypothesis) : hypothesis).split("");
   if (ref.length === 0) return hyp.length === 0 ? 0 : 1;
   return levenshtein(ref, hyp) / ref.length;
 }
@@ -81,8 +91,14 @@ export function criticalTermRecall(
 }
 
 export interface Metrics {
+  /** Normalised WER (lowercased + punctuation stripped), per AfriHealth. */
   wer: number;
+  /** Raw / unnormalised WER. */
+  werUnnorm: number;
+  /** Normalised CER. */
   cer: number;
+  /** Raw / unnormalised CER. */
+  cerUnnorm: number;
   criticalTermRecall: number;
   wordCount: number;
   latencyMs: number | null;
@@ -94,8 +110,10 @@ export function computeAllMetrics(
   opts: { criticalTerms?: string[]; latencyMs?: number | null } = {},
 ): Metrics {
   return {
-    wer: wordErrorRate(reference, hypothesis),
-    cer: charErrorRate(reference, hypothesis),
+    wer: wordErrorRate(reference, hypothesis, true),
+    werUnnorm: wordErrorRate(reference, hypothesis, false),
+    cer: charErrorRate(reference, hypothesis, true),
+    cerUnnorm: charErrorRate(reference, hypothesis, false),
     criticalTermRecall: criticalTermRecall(reference, hypothesis, opts.criticalTerms),
     wordCount: tokenize(hypothesis).length,
     latencyMs: opts.latencyMs ?? null,

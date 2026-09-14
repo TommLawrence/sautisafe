@@ -267,12 +267,13 @@ export function BenchmarkTab() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="py-2 pr-4">Provider</th>
-                    <th className="py-2 pr-4 text-right">WER</th>
-                    <th className="py-2 pr-4 text-right">CER</th>
-                    <th className="py-2 pr-4 text-right">Critical-term recall</th>
-                    <th className="py-2 pr-4 text-right">Latency</th>
-                    <th className="py-2 pr-4 text-right">Words</th>
+                    <th className="py-2 pr-3">Provider</th>
+                    <th className="py-2 pr-3 text-right">WER (norm)</th>
+                    <th className="py-2 pr-3 text-right">WER (raw)</th>
+                    <th className="py-2 pr-3 text-right">CER (norm)</th>
+                    <th className="py-2 pr-3 text-right">CER (raw)</th>
+                    <th className="py-2 pr-3 text-right">Recall</th>
+                    <th className="py-2 pr-3 text-right">Latency</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,13 +298,12 @@ export function BenchmarkTab() {
                           )}
                         </div>
                       </td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{pct(r.wer)}</td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{pct(r.cer)}</td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">
-                        {pct(r.criticalTermRecall)}
-                      </td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{ms(r.latencyMs)}</td>
-                      <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.wordCount ?? "-"}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums">{pct(r.wer)}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums text-muted-foreground">{pct(r.werUnnorm)}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums">{pct(r.cer)}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums text-muted-foreground">{pct(r.cerUnnorm)}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums">{pct(r.criticalTermRecall)}</td>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums">{ms(r.latencyMs)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -85,8 +85,10 @@ export interface AuditEvent {
 export interface BenchmarkResult {
   provider: SpeechProvider;
   text: string;
-  wer: number | null; // word error rate 0..1
-  cer: number | null; // char error rate 0..1
+  wer: number | null; // normalised word error rate 0..1
+  werUnnorm: number | null; // raw / unnormalised WER (per AfriHealth)
+  cer: number | null; // normalised char error rate 0..1
+  cerUnnorm: number | null; // raw / unnormalised CER
   criticalTermRecall: number | null; // 0..1
   latencyMs: number | null;
   wordCount: number | null;
