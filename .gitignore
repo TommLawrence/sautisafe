@@ -73,3 +73,10 @@ tool-results/
 
 # stray scratch
 Oklab
+
+# benchmark audio data (too large for git)
+/db/afrihealth/*.tar.gz
+/db/afrihealth/luganda-audio/
+/db/afrihealth/kiswahili-audio/
+/db/afrihealth/luganda-mono/
+/db/afrihealth/kiswahili-mono/
