@@ -20,7 +20,7 @@ export function Landing() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-safety-grid">
+    <div className="flex min-h-screen flex-col bg-landing">
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6">
         <div className="flex flex-col items-center gap-3 text-center">
           <BrandMark className="h-20 w-20" />

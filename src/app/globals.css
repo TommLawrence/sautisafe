@@ -144,7 +144,22 @@
   }
 }
 
-/* Safety-grid background for hero / header areas */
+/* Landing background: radial blue glow + faint soundwave arcs.
+   Conveys "voice" (soundwave) + "safety" (calm, structured). */
+.bg-landing {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 8%, transparent) 1px, transparent 2px),
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 6%, transparent) 1px, transparent 3px),
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 4%, transparent) 1px, transparent 4px),
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 2%, transparent) 1px, transparent 5px);
+  background-size: 100% 100%, 120px 120px, 180px 180px, 240px 240px, 300px 300px;
+  background-repeat: no-repeat, repeat, repeat, repeat, repeat;
+  background-position: center top, center, center, center, center;
+}
+
+/* Kept for backwards compat (no longer used on the landing). */
 .bg-safety-grid {
   background-image:
     linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
