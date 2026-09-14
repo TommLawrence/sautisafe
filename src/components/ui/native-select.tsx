@@ -38,7 +38,7 @@ export const NativeSelect = React.forwardRef<
         aria-label={rest["aria-label"]}
         onChange={(e) => onValueChange(e.target.value)}
         className={cn(
-          "h-10 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-9 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          "h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-9 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
           value ? "text-foreground" : "text-muted-foreground",
         )}
       >
@@ -54,7 +54,7 @@ export const NativeSelect = React.forwardRef<
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
     </div>
   );
 });
