@@ -1,12 +1,20 @@
 "use client";
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { Mic, ClipboardList, FlaskConical, Info, ShieldCheck, WifiOff } from "lucide-react";
+import { Mic, ClipboardList, FlaskConical, Info, WifiOff, MoreHorizontal, FileText, Lock, ExternalLink } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { ModeToggle } from "@/components/mode-toggle";
 import { InstallPrompt } from "@/components/install-prompt";
 import { OfflineDraftsButton } from "@/components/offline-drafts-button";
-import { Footer } from "@/components/footer";
+import { Footer, type LegalPage } from "@/components/footer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAppStore, type TabKey, type Role } from "@/lib/store";
 import { retryAllDrafts } from "@/lib/drafts-store";
 import { cn } from "@/lib/utils";
@@ -45,6 +53,7 @@ function tabsFor(role: Role | null) {
 export function AppShell() {
   const { tab, setTab, role } = useAppStore();
   const tabs = tabsFor(role);
+  const [legal, setLegal] = React.useState<LegalPage>(null);
 
   // Honour ?tab= from PWA manifest shortcuts (only if visible for the role).
   React.useEffect(() => {
@@ -89,8 +98,8 @@ export function AppShell() {
         {tab === "benchmark" && <BenchmarkTab />}
         {tab === "about" && <AboutTab />}
       </main>
-      <Footer />
-      <BottomNav tab={tab} setTab={setTab} tabs={tabs} />
+      <Footer legal={legal} setLegal={setLegal} />
+      <BottomNav tab={tab} setTab={setTab} tabs={tabs} setLegal={setLegal} />
     </div>
   );
 }
@@ -115,8 +124,9 @@ function Header({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => voi
           <BrandMark className="h-9 w-9" />
           <div className="leading-tight">
             <p className="text-base font-bold tracking-tight">SautiSafe</p>
-            <p className="hidden text-[11px] text-muted-foreground sm:block">
-              Safer reporting, in the language workers actually speak
+            <p className="max-w-[155px] text-[10px] text-muted-foreground sm:max-w-none sm:text-[11px]">
+              <span className="sm:hidden">Voice-first safety reporting</span>
+              <span className="hidden sm:inline">Safer reporting, in the language workers actually speak</span>
             </p>
           </div>
         </div>
@@ -154,7 +164,7 @@ function Header({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => voi
           )}
           <OfflineDraftsButton />
           <InstallPrompt />
-          <ModeToggle />
+          <ModeToggle className="hidden sm:inline-flex" />
         </div>
       </div>
     </header>
@@ -162,7 +172,7 @@ function Header({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => voi
 }
 
 /** Mobile bottom navigation (fixed). Hidden on >= sm where the header nav is used. */
-function BottomNav({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => void; tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] }) {
+function BottomNav({ tab, setTab, tabs, setLegal }: { tab: TabKey; setTab: (t: TabKey) => void; tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[]; setLegal: React.Dispatch<React.SetStateAction<LegalPage>> }) {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:hidden"
@@ -171,7 +181,7 @@ function BottomNav({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => 
     >
       <div
         className="mx-auto grid h-16 max-w-5xl"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}
       >
         {tabs.map((t) => {
           const active = tab === t.key;
@@ -191,6 +201,33 @@ function BottomNav({ tab, setTab, tabs }: { tab: TabKey; setTab: (t: TabKey) => 
             </button>
           );
         })}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors" aria-label="More options">
+              <MoreHorizontal className="h-5 w-5" />
+              More
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" sideOffset={10} className="mb-1 w-56 p-2">
+            <DropdownMenuLabel className="text-xs uppercase tracking-wide text-muted-foreground">Resources</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => setLegal("terms")}>
+              <FileText /> Terms of service
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setLegal("privacy")}>
+              <Lock /> Privacy policy
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setTab("about")}>
+              <Info /> About + safeguards
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href="https://crane-systems.vercel.app/" target="_blank" rel="noopener noreferrer">
+                <ExternalLink /> Crane Systems
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <ModeToggle labeled />
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </nav>
   );

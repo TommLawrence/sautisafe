@@ -13,10 +13,16 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppStore } from "@/lib/store";
 
-/** Desktop-only organised footer with Terms + Privacy sheets.
- *  Mobile uses the bottom nav instead (see app-shell). */
-export function Footer() {
-  const [legal, setLegal] = React.useState<null | "terms" | "privacy">(null);
+export type LegalPage = null | "terms" | "privacy";
+
+/** Desktop footer and shared legal sheets. Mobile opens the sheets from its More menu. */
+export function Footer({
+  legal,
+  setLegal,
+}: {
+  legal: LegalPage;
+  setLegal: React.Dispatch<React.SetStateAction<LegalPage>>;
+}) {
   const setTab = useAppStore((s) => s.setTab);
 
   return (
