@@ -43,12 +43,14 @@ export default defineSchema({
   incidents: defineTable({
     referenceNo: v.string(), // human-friendly, e.g. SSA-2026-0001 (unique)
     workerId: v.optional(v.id("workers")),
+    reportedBy: v.optional(v.string()), // technician name (free text, for the supervisor queue)
 
     // --- Raw voice inputs ---
     audioFileName: v.optional(v.string()),
     audioMimeType: v.optional(v.string()),
     audioSizeBytes: v.optional(v.int64()),
     audioDurationSec: v.optional(v.int64()),
+    audioStoragePath: v.optional(v.id("_storage")), // persisted audio blob (for re-transcription / benchmark)
     rawTranscript: v.optional(v.string()), // primary transcript (final chosen)
 
     // --- Structured safety fields (extracted by the LLM) ---

@@ -479,3 +479,23 @@ Stage Summary:
 - The 10-person test is ready: each colleague picks "Technician" on the landing, enters their name in "Your name", records + submits. The sole supervisor sees every submission in the Reports queue, each tagged "by {name}". The shared queue means all supervisors see all submissions (no isolation).
 - The benchmark now has 6 scenarios: 4 original industrial-safety + 2 real Afrispeech-200 clinical transcripts (Luganda + Swahili) from a recognised public dataset, with normalised + unnormalised WER/CER per AfriHealth methodology.
 - The AfriHealth/AfriSwitch gated datasets need the user's HuggingFace token to download; afrispeech-200 (public) was used as the closest available reference. On the published link, Gemini + Whisper should work (no geo-block) - the user will test there. No cron job.
+
+---
+Task ID: 49 (convex sync audit + .env.example + test-user paragraphs)
+Agent: Z.ai Code (main orchestrator)
+Task: Audit + sync the convex migration with the latest Z-cloud backend (reportedBy, audioStoragePath, editable rawTranscript), create .env.example so it's downloadable with the project, and write 10 English test-user paragraphs (with a Luganda-mixing note) for the 10-colleague field test.
+
+Work Log:
+- Convex sync audit: found the convex migration was MISSING reportedBy + audioStoragePath (added to the live Prisma schema + /api/incidents in earlier tasks but never mirrored to convex). Fixed:
+  * convex/schema.ts: added reportedBy (v.optional(v.string())) + audioStoragePath (v.optional(v.id("_storage"))) to the incidents table.
+  * convex/incidents.ts createIncident: added reportedBy + audioStoragePath to the args + the insert payload.
+  * updateIncident already had rawTranscript in its patchable-fields list (the editable/verified transcript feature), so no change needed there.
+  Now the convex production migration matches the live Z-cloud backend field-for-field.
+- Created .env.example at the project root (was missing - got lost in an earlier commit). Contains DATABASE_URL, INTRON_API_KEY/BASE_URL, OPENAI_API_KEY, GEMINI_API_KEY/MODEL, + the production convex env-set commands. This file IS committed (not gitignored) so it's downloadable with the project; the user copies it to .env and fills in keys.
+- Wrote download/test-user-paragraphs.md: 10 English incident paragraphs (boiler pressure, chemical spill, forklift near miss, arc flash, scaffold collapse, gas leak, conveyor entanglement, hot surface burn, wet floor slip, uncontrolled pressure release) + a Luganda-mixing tip section with example phrases. Each paragraph is a realistic industrial-safety scenario the test users can read aloud while sprinkling in Luganda.
+
+Stage Summary:
+- Convex migration is now back in sync with the Z-cloud backend (reportedBy + audioStoragePath + editable rawTranscript). From here on, every backend change will be mirrored to convex/ to keep them in lockstep.
+- .env.example is committed at the root, so it appears in the downloadable project. The user copies it to .env and adds their INTRON/OPENAI/GEMINI keys.
+- 10 test-user paragraphs are in download/test-user-paragraphs.md, ready for the 10-colleague field test.
+- WAITING ON THE USER: their HuggingFace fine-grained token (read access to datasets) to download the gated AfriHealth + AfriSwitch audio + run a real per-language benchmark. lint clean; no cron job.
