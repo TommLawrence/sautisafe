@@ -31,6 +31,14 @@ export function Footer() {
             <p className="text-xs text-muted-foreground sm:max-w-md">
               Emergency procedures come first. This tool documents and routes, never replaces them.
             </p>
+            <a
+              href="https://crane-systems.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex text-xs font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Crane Systems
+            </a>
           </div>
 
           <div className="space-y-2">

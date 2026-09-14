@@ -1,3 +1,5 @@
+You can pic any of this:
+
 # SautiSafe test-user paragraphs (10)
 
 Read one of these paragraphs aloud in the SautiSafe Report tab. As you read,
@@ -82,8 +84,6 @@ phrase where it feels natural, for example:
 
 - "The pressure ebadde egenda waggulu" (was going up too high)
 - "Naye twasobodde okugikendeeza" (but we managed to bring it down)
-- "Hakuna majeraha" (no injuries - this is Swahili, also fine)
-- "Tuliabudde operator a-stop" (we told the operator to stop)
 - "Twatadde ku line" (we isolated the line)
 
 Speak at your normal pace. The app is built for code-switched speech.
