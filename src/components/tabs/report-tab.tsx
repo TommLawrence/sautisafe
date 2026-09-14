@@ -33,7 +33,7 @@ import { AudioRecorder, type CapturedAudio } from "@/components/audio-recorder";
 import { NativeSelect } from "@/components/ui/native-select";
 import { UrgentBanner } from "@/components/urgent-banner";
 import { useAppStore } from "@/lib/store";
-import { detectUrgentTags, INJURY_LABELS, INJURY_STATUSES, SEVERITIES, SEVERITY_LABELS } from "@/lib/safety";
+import { applyUrgencyNegation, detectUrgentTags, INJURY_LABELS, INJURY_STATUSES, SEVERITIES, SEVERITY_LABELS } from "@/lib/safety";
 import { SUPPORTED_LANGUAGES, languageLabel } from "@/lib/languages";
 import type { ExtractedFields, InjuryStatus, Severity } from "@/lib/types";
 import { toast } from "sonner";
@@ -114,7 +114,10 @@ export function ReportTab() {
     mutationFn: () =>
       extractFields({ transcript: draft.transcript ?? "" }) as Promise<ExtractedFields>,
     onSuccess: (data) => {
-      const tags = data.urgentTags?.length ? data.urgentTags : detectUrgentTags(draft.transcript ?? "");
+      const rawTags = data.urgentTags?.length
+        ? data.urgentTags
+        : detectUrgentTags(draft.transcript ?? "");
+      const tags = applyUrgencyNegation(rawTags, draft.transcript ?? "");
       setDraft({
         extracted: data,
         urgentTags: tags,
@@ -505,7 +508,7 @@ function StructuredFieldsForm() {
           </Badge>
         )}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {fields.map(({ key, label, required }) => {
           const isMissing = missing.includes(key as string);
           return (
@@ -547,7 +550,7 @@ function StructuredFieldsForm() {
             value={f.injuryStatus || ""}
             onValueChange={(v) => setFields({ injuryStatus: v as InjuryStatus })}
           >
-            <SelectTrigger>
+          <SelectTrigger className="w-full">
               <SelectValue placeholder="Select…" />
             </SelectTrigger>
             <SelectContent>
@@ -565,7 +568,7 @@ function StructuredFieldsForm() {
             value={f.severity || ""}
             onValueChange={(v) => setFields({ severity: v as Severity })}
           >
-            <SelectTrigger>
+          <SelectTrigger className="w-full">
               <SelectValue placeholder="Select…" />
             </SelectTrigger>
             <SelectContent>
@@ -604,7 +607,7 @@ function FollowUpsCard({
       {followUps.map((fu, i) => (
         <div key={i} className="space-y-1.5">
           <Label className="flex items-center gap-2 text-sm">
-            <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase text-primary">
+            <span className={`rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase text-primary ${fu.field === "equipment" || fu.field === "peopleAffected" ? "hidden sm:inline-flex" : ""}`}>
               {fu.field}
             </span>
             {fu.question}

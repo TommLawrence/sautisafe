@@ -57,6 +57,7 @@ import type { BenchmarkResult, Incident, IncidentStatus, Severity } from "@/lib/
 import { pct, ms } from "@/lib/metrics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/lib/store";
 import { convexApi } from "@/lib/convex-api";
 import {
   adaptBenchmarkResult,
@@ -317,7 +318,7 @@ function ReviewSheet({
                     incidentId={inc.id}
                     text={inc.rawTranscript}
                     hasAudio={!!inc.audioStoragePath}
-                    onBenchmarked={() => undefined}
+                    onBenchmarked={onClose}
                   />
                 </Section>
               )}
@@ -538,6 +539,7 @@ function EditableTranscript({
   hasAudio: boolean;
   onBenchmarked: () => void;
 }) {
+  const setTab = useAppStore((state) => state.setTab);
   const [editing, setEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(text);
   const [bench, setBench] = React.useState<BenchmarkResult[] | null>(null);
@@ -573,7 +575,6 @@ function EditableTranscript({
       toast.success("Transcript verified", {
         description: "It is now the benchmark reference for this report.",
       });
-      onBenchmarked();
     },
     onError: (e: Error) => toast.error("Could not save transcript", { description: e.message }),
   });
@@ -620,6 +621,7 @@ function EditableTranscript({
       setBench(data.results);
       setAggregate(data.aggregateMetrics ?? null);
       onBenchmarked();
+      setTab("benchmark");
       const ok = data.results.filter((r) => r.success).length;
       toast.success("Benchmark complete", { description: `${ok}/${data.results.length} lanes ran` });
     },

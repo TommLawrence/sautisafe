@@ -79,3 +79,14 @@ export const saveBenchmarkRun = mutation({
     });
   },
 });
+
+/** Delete a benchmark history record. Audio and incidents are left untouched. */
+export const deleteBenchmarkRun = mutation({
+  args: { id: v.id("benchmarkRuns") },
+  handler: async (ctx, { id }): Promise<Id<"benchmarkRuns">> => {
+    const run = await ctx.db.get(id);
+    if (!run) throw new Error(`Benchmark run ${id} not found`);
+    await ctx.db.delete(id);
+    return id;
+  },
+});

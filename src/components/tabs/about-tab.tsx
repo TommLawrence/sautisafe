@@ -21,7 +21,7 @@ export function AboutTab() {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden">
-        <div className="bg-safety-grid border-b border-border">
+        <div className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-background">
           <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
             <BrandMark className="h-14 w-14 shrink-0" />
             <div>

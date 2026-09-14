@@ -7,7 +7,7 @@ export const URGENCY_VOCABULARY: Record<string, string[]> = {
   fire: ["fire", "burning", "burns", "flames", "on fire", "ignited", "combustion"],
   chemical: ["chemical", "spill", "fumes", "vapour", "vapor", "toxic", "hcl", "chlorine", "ammonia", "acid", "caustic", "exposure"],
   electrocution: ["electrocution", "electric shock", "shocked", "live wire", "high voltage", "arc flash", "electrical"],
-  "uncontrolled-pressure": ["uncontrolled pressure", "overpressure", "relief valve", "burst", "rupture", "pressure release", "blowout"],
+  "uncontrolled-pressure": ["uncontrolled pressure", "overpressure", "burst", "rupture", "blowout", "suddenly released", "emergency stop"],
   injury: ["injury", "injured", "bleeding", "wound", "fracture", "broken bone", "concussion", "crush", "amputat"],
   "gas-leak": ["gas leak", "leaking gas", "gas escape", "methane", "propane leak", "lp gas"],
   explosion: ["explosion", "exploded", "blast"],
@@ -62,6 +62,25 @@ export function applyInjuryNegation(tags: string[], transcript: string): string[
     return tags.filter((t) => t !== "injury");
   }
   return tags;
+}
+
+const FIRE_NEGATION = [
+  /\bno\s+(active\s+)?fire\b/i,
+  /\bwithout\s+(an?\s+)?fire\b/i,
+  /\bfire\s+(?:was\s+)?(?:not|never)\b/i,
+];
+
+export function isFireNegated(text: string): boolean {
+  return FIRE_NEGATION.some((pattern) => pattern.test(text));
+}
+
+/** Remove only explicit, nearby negations; all other urgent tags remain additive. */
+export function applyUrgencyNegation(tags: string[], transcript: string): string[] {
+  let next = applyInjuryNegation(tags, transcript);
+  if (next.includes("fire") && isFireNegated(transcript)) {
+    next = next.filter((tag) => tag !== "fire");
+  }
+  return next;
 }
 
 export const SEVERITIES = ["low", "medium", "high", "critical"] as const;

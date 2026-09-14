@@ -22,6 +22,7 @@ export const convexApi = {
   benchmark: {
     listBenchmarkRuns: makeFunctionReference<"query">("benchmark:listBenchmarkRuns"),
     saveBenchmarkRun: makeFunctionReference<"mutation">("benchmark:saveBenchmarkRun"),
+    deleteBenchmarkRun: makeFunctionReference<"mutation">("benchmark:deleteBenchmarkRun"),
   },
   actions: {
     transcribe: {

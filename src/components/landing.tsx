@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { HardHat, ClipboardCheck, ArrowRight, ShieldCheck } from "lucide-react";
+import { HardHat, ClipboardCheck, ArrowRight } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,10 +87,6 @@ export function Landing() {
           </button>
         </div>
 
-        <p className="mt-6 flex items-center gap-1.5 text-center text-[11px] text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-          Emergency procedures come first. This tool documents and routes, never replaces them.
-        </p>
       </main>
     </div>
   );

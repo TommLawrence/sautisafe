@@ -26,6 +26,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileAudio,
+  Trash2,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -398,6 +400,8 @@ export function BenchmarkTab() {
 }
 
 function BenchmarkHistory() {
+  const [openId, setOpenId] = React.useState<string | null>(null);
+  const deleteBenchmarkRun = useConvexMutation(convexApi.benchmark.deleteBenchmarkRun);
   const data = useConvexQuery(convexApi.benchmark.listBenchmarkRuns, {}) as
     | Record<string, any>[]
     | undefined;
@@ -458,6 +462,48 @@ function BenchmarkHistory() {
                           <span className="font-mono">{pct(avgWer)}</span>
                         </span>
                       )}
+                    </div>
+                    {openId === run.id && (
+                      <div className="mt-3 space-y-2 border-t border-border pt-3">
+                        {run.results.map((result) => (
+                          <div key={result.provider} className="flex items-center justify-between gap-3 text-xs">
+                            <span className="font-medium">{PROVIDER_LABEL[result.provider] ?? result.provider}</span>
+                            <span className={result.success ? "text-muted-foreground" : "text-destructive"}>
+                              {result.success ? `WER ${pct(result.wer)}` : "Failed"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        aria-label={`Delete benchmark ${run.referenceNo}`}
+                        onClick={async () => {
+                          if (!window.confirm(`Delete benchmark ${run.referenceNo}?`)) return;
+                          try {
+                            await deleteBenchmarkRun({ id: run.id });
+                            toast.success("Benchmark deleted");
+                          } catch (error) {
+                            toast.error("Could not delete benchmark", {
+                              description: error instanceof Error ? error.message : "Unknown error",
+                            });
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        aria-label={openId === run.id ? "Collapse benchmark details" : "Show benchmark details"}
+                        onClick={() => setOpenId(openId === run.id ? null : run.id)}
+                      >
+                        <ChevronRight className={`h-4 w-4 transition-transform ${openId === run.id ? "rotate-90" : ""}`} />
+                      </Button>
                     </div>
                   </li>
                 );
