@@ -49,6 +49,7 @@ dev.log
 dev.out.log
 test
 prompt
+!download/**
 
 server.log
 # Skills directory
