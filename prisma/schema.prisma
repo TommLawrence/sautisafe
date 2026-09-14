@@ -1,3 +1,4 @@
+// Reference only — production uses Convex (see convex/schema.ts)
 // SautiSafe — Prisma schema (local testing instance in the Z cloud)
 // This schema is mirrored 1:1 in /convex/schema.ts for the future
 // Vercel + Convex production deployment. See convex/MIGRATION.md.
@@ -124,4 +125,3 @@ model AuditEvent {
   detail      String?
   createdAt   DateTime  @default(now())
 }
-

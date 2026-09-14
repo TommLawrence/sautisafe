@@ -1,3 +1,5 @@
+"use node";
+
 // SautiSafe — transcription provider actions (production Convex backend).
 //
 // Mirrors the live Next.js `/api/transcribe/*` routes 1:1. Each exported

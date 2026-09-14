@@ -1,3 +1,5 @@
+"use node";
+
 // SautiSafe — LLM-based safety-field extraction (production Convex backend).
 //
 // Mirrors the live Next.js `/api/extract` route 1:1.
