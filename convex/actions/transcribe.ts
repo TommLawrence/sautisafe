@@ -95,12 +95,12 @@ export const transcribeWithProvider = action({
     // Convex File Storage does NOT preserve Content-Type on the Blob object
     // (blob.type is empty). Read it from the _storage system metadata and
     // graft it onto the blob so the providers get the right MIME -> extension.
-    const meta = await ctx.db.system.get(audioStorageId);
+    const meta = await ctx.runQuery(api.audio.getAudioMeta, { storageId: audioStorageId });
     const contentType = meta?.contentType ?? "audio/wav";
     const blobWithType = contentType && !blob.type
       ? new Blob([await blob.arrayBuffer()], { type: contentType })
       : blob;
-    const lang = language ?? "lg";
+    const lang = normalizeSaharaLanguage(language);
 
     switch (provider) {
       case "sahara":
@@ -153,7 +153,7 @@ export const runBenchmark = action({
   },
   handler: async (ctx, args): Promise<BenchmarkResult[]> => {
     const results: BenchmarkResult[] = [];
-    const lang = args.language ?? "lg";
+    const lang = normalizeSaharaLanguage(args.language);
 
     for (const provider of args.providers) {
       try {
@@ -542,6 +542,19 @@ function audioExtensionFor(mimeType: string | undefined): string {
   return "wav";
 }
 
+/** Convert extraction labels such as "eng+lug+swa" into an input code the
+ * Sahara API accepts. Prefer the African language in a code-switched mix. */
+function normalizeSaharaLanguage(language: string | undefined): string {
+  if (!language) return "lg";
+  const value = language.toLowerCase().trim();
+  const supported = ["lg", "sw", "en", "yo", "ha", "ig", "am", "rw", "af", "ak"];
+  if (supported.includes(value)) return value;
+  if (value.includes("lug")) return "lg";
+  if (value.includes("swa")) return "sw";
+  if (value.includes("eng")) return "en";
+  return "lg";
+}
+
 /** Convert a Uint8Array to a base64 string without leaking into btoa errors. */
 function bufferToBase64(buf: Uint8Array): string {
   // Convex actions run in a Node-like runtime that exposes Buffer.
@@ -569,7 +582,9 @@ function truncate(s: string): string {
  * api_key=...) just in case a provider echoes it back.
  */
 function safeErrorMessage(err: unknown): string {
-  const raw = err instanceof Error ? err.message : String(err ?? "");
+  const raw = (err instanceof Error ? err.message : String(err ?? ""))
+    .replace(/^Uncaught Error:\s*/i, "")
+    .split(/\n\s*at\s|\s+at\s+transcribe(?:Sahara|Whisper|Gemini)\s*\(/i)[0];
   // Strip obvious secrets.
   return raw
     .replace(/Bearer\s+[A-Za-z0-9._\-]+/gi, "Bearer ***")

@@ -154,13 +154,8 @@ export function BenchmarkTab() {
           </CardTitle>
           <CardDescription>
             Compare speech models on the same audio against a verified reference
-            transcript. Every lane calls its real provider when the matching key
-            is set in <code className="rounded bg-muted px-1 font-mono text-[11px]">.env</code>:
-            <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">INTRON_API_KEY</code>
-            (Sahara), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">OPENAI_API_KEY</code>
-            (Whisper), <code className="mx-1 rounded bg-muted px-1 font-mono text-[11px]">GEMINI_API_KEY</code>
-            (Gemini <code className="font-mono">gemini-3.8-flash</code>). Without a key a
-            lane reports an honest “not configured” error - never silently substituted.
+            transcript using Sahara, Whisper, and Gemini. Each lane calls its real
+            provider and reports failures honestly - never silently substituting another model.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
