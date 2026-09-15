@@ -92,15 +92,23 @@ export const transcribeWithProvider = action({
     if (!blob) {
       throw new Error(`Audio blob ${audioStorageId} not found in storage.`);
     }
+    // Convex File Storage does NOT preserve Content-Type on the Blob object
+    // (blob.type is empty). Read it from the _storage system metadata and
+    // graft it onto the blob so the providers get the right MIME -> extension.
+    const meta = await ctx.db.system.get(audioStorageId);
+    const contentType = meta?.contentType ?? "audio/wav";
+    const blobWithType = contentType && !blob.type
+      ? new Blob([await blob.arrayBuffer()], { type: contentType })
+      : blob;
     const lang = language ?? "lg";
 
     switch (provider) {
       case "sahara":
-        return await transcribeSahara(blob, lang);
+        return await transcribeSahara(blobWithType, lang);
       case "whisper":
-        return await transcribeWhisper(blob);
+        return await transcribeWhisper(blobWithType);
       case "gemini":
-        return await transcribeGemini(blob);
+        return await transcribeGemini(blobWithType);
       default:
         throw new Error(
           `Unknown transcription provider "${provider}". Supported: sahara, whisper, gemini.`,
