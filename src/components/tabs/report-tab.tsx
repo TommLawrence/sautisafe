@@ -400,7 +400,7 @@ export function ReportTab() {
             )}
 
             <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Transcript
                 </span>
@@ -499,16 +499,18 @@ function StructuredFieldsForm() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <FileText className="h-4 w-4 text-primary" />
-        <h4 className="text-sm font-semibold">Structured safety report</h4>
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <h4 className="text-sm font-semibold">Structured safety report</h4>
+        </div>
         {missing.length > 0 && (
-          <Badge variant="outline" className="text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-700">
+          <Badge variant="outline" className="w-fit text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-700">
             {missing.length} field(s) suggested for follow-up
           </Badge>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid gap-3 sm:grid-cols-2">
         {fields.map(({ key, label, required }) => {
           const isMissing = missing.includes(key as string);
           return (

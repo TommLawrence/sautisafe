@@ -230,7 +230,7 @@ async function transcribeSahara(
   }
 
   const start = Date.now();
-  const fileName = "sautisafe.wav";
+  const fileName = "sautisafe." + audioExtensionFor(blob.type);
   const buildForm = () => {
     const form = new FormData();
     form.append("audio_file_name", fileName);
@@ -368,7 +368,7 @@ async function transcribeWhisper(blob: Blob): Promise<TranscriptionResult> {
   const start = Date.now();
   try {
     const form = new FormData();
-    form.append("file", blob, "audio.webm");
+    form.append("file", blob, "audio." + audioExtensionFor(blob.type));
     form.append("model", process.env.OPENAI_WHISPER_MODEL ?? "whisper-1");
     form.append("response_format", "verbose_json");
 
@@ -518,6 +518,20 @@ function pickOptionalNumber(obj: Record<string, unknown>, keys: string[]): numbe
     }
   }
   return undefined;
+}
+
+/** Map an audio MIME type to the correct file extension so providers parse
+ *  the blob in the right format. Falls back to "wav" (Sahara's safest). */
+function audioExtensionFor(mimeType: string | undefined): string {
+  if (!mimeType) return "wav";
+  const m = mimeType.toLowerCase();
+  if (m.includes("mpeg") || m.includes("mp3")) return "mp3";
+  if (m.includes("wav")) return "wav";
+  if (m.includes("webm")) return "webm";
+  if (m.includes("ogg")) return "ogg";
+  if (m.includes("mp4") || m.includes("m4a")) return "m4a";
+  if (m.includes("flac")) return "flac";
+  return "wav";
 }
 
 /** Convert a Uint8Array to a base64 string without leaking into btoa errors. */
