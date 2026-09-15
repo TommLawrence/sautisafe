@@ -34,15 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { NativeSelect } from "@/components/ui/native-select";
-import { SAMPLE_SCENARIOS } from "@/lib/safety";
 import { SUPPORTED_LANGUAGES } from "@/lib/languages";
 import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES, formatBytes } from "@/lib/audio-utils";
 import { pct, ms } from "@/lib/metrics";
@@ -74,7 +66,6 @@ const PROVIDER_LABEL: Record<string, string> = {
 export function BenchmarkTab() {
   const [audioFile, setAudioFile] = React.useState<File | null>(null);
   const [reference, setReference] = React.useState("");
-  const [scenarioId, setScenarioId] = React.useState<string>("");
   const [language, setLanguage] = React.useState<string>("lg");
   const [dragOver, setDragOver] = React.useState(false);
   const runBenchmark = useAction(convexApi.actions.transcribe.runBenchmark);
@@ -107,7 +98,6 @@ export function BenchmarkTab() {
       const referenceNo = `SSA-${new Date().getFullYear()}-${String((existingRuns?.length ?? 0) + 1).padStart(4, "0")}`;
       const runId = (await saveBenchmarkRun({
         referenceNo,
-        ...(scenarioId ? { scenario: scenarioId } : {}),
         audioFileName: audioFile.name,
         referenceTranscript: reference.trim(),
         resultsJson: JSON.stringify(rawResults),
@@ -122,17 +112,6 @@ export function BenchmarkTab() {
     },
     onError: (e: Error) => toast.error("Benchmark failed", { description: e.message }),
   });
-
-  function applyScenario(id: string) {
-    setScenarioId(id);
-    const s = SAMPLE_SCENARIOS.find((x) => x.id === id);
-    if (s) {
-      setReference(s.referenceText);
-      // match the Sahara lane language to the scenario's code-switch profile
-      const langFor: Record<string, string> = { s1: "lg", s2: "en", s3: "sw", s4: "en", s5: "lg", s6: "sw" };
-      if (langFor[id]) setLanguage(langFor[id]);
-    }
-  }
 
   const results = runMut.data?.results ?? [];
   const chartData = results.map((r) => ({
@@ -204,24 +183,6 @@ export function BenchmarkTab() {
                 )}
                 <p className="text-[11px] text-muted-foreground">
                   Max {formatBytes(MAX_AUDIO_BYTES)}. WAV/MP3/M4A/OGG.
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Quick scenario</Label>
-                <Select value={scenarioId} onValueChange={applyScenario}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Load a sample reference transcript" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SAMPLE_SCENARIOS.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground">
-                  Reference transcripts must be manually verified.
                 </p>
               </div>
               <div className="space-y-1.5">
