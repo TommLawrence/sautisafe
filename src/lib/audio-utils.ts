@@ -146,4 +146,21 @@ export const ACCEPTED_AUDIO_TYPES = [
   "audio/ogg",
   "audio/webm",
   "audio/x-m4a",
+  "audio/aac",
+  "video/mp4",
 ];
+
+/** Return a reliable upload MIME when a browser leaves File.type empty or
+ * uses a generic value (common for M4A files on Android). */
+export function mimeTypeForAudioFile(file: File): string {
+  const declared = file.type.toLowerCase().trim();
+  if (declared && declared !== "application/octet-stream") return declared;
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".m4a")) return "audio/mp4";
+  if (name.endsWith(".mp3")) return "audio/mpeg";
+  if (name.endsWith(".wav")) return "audio/wav";
+  if (name.endsWith(".ogg") || name.endsWith(".oga")) return "audio/ogg";
+  if (name.endsWith(".webm")) return "audio/webm";
+  if (name.endsWith(".mp4")) return "video/mp4";
+  return "audio/wav";
+}

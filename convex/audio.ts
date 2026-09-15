@@ -43,6 +43,9 @@ const ALLOWED_MIME: Record<string, true> = {
   "audio/ogg": true,
   "audio/mp4": true,
   "audio/m4a": true,
+  "audio/x-m4a": true,
+  "audio/aac": true,
+  "video/mp4": true,
   "video/webm": true, // some recorders emit webm under video/*
 };
 
@@ -120,7 +123,8 @@ export const saveAudio = mutation({
     }
 
     // Validate MIME against the allow-list.
-    if (!ALLOWED_MIME[args.mimeType]) {
+    const baseMime = args.mimeType.toLowerCase().split(";", 1)[0].trim();
+    if (!ALLOWED_MIME[args.mimeType.toLowerCase()] && !ALLOWED_MIME[baseMime]) {
       throw new Error(
         `Unsupported audio MIME type "${args.mimeType}". Allowed: ${Object.keys(ALLOWED_MIME).join(", ")}.`,
       );

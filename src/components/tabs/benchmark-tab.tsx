@@ -36,7 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SUPPORTED_LANGUAGES } from "@/lib/languages";
-import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES, formatBytes } from "@/lib/audio-utils";
+import { ACCEPTED_AUDIO_TYPES, MAX_AUDIO_BYTES, formatBytes, mimeTypeForAudioFile } from "@/lib/audio-utils";
 import { pct, ms } from "@/lib/metrics";
 import type { BenchmarkResult } from "@/lib/types";
 import { toast } from "sonner";
@@ -83,7 +83,7 @@ export function BenchmarkTab() {
       const audioStorageId = await uploadAudio(
         audioFile,
         audioFile.name || "benchmark.wav",
-        audioFile.type || "audio/wav",
+        mimeTypeForAudioFile(audioFile),
         audioFile.size,
         { generateUploadUrl, saveAudio },
       );

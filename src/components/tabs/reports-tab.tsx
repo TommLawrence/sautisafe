@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   ArrowUpCircle,
   ShieldCheck,
+  ShieldOff,
   Clock,
   FileAudio,
   ChevronRight,
@@ -273,6 +274,24 @@ function ReviewSheet({
     onError: (e: Error) => toast.error("Review failed", { description: e.message }),
   });
 
+  const clearUrgencyMut = useMutation({
+    mutationFn: async () => {
+      if (!incidentId) throw new Error("No report selected");
+      return await updateIncident({
+        id: incidentId,
+        isUrgent: false,
+        urgencyTags: "[]",
+        reviewedBy: reviewer.trim() || "Supervisor",
+        actionOverride: "urgency-cleared",
+        actionDetail: "Supervisor marked the automated urgency flag as a false positive",
+      });
+    },
+    onSuccess: () => toast.success("Report marked not urgent", {
+      description: "The supervisor override was added to the audit trail.",
+    }),
+    onError: (e: Error) => toast.error("Could not clear urgency", { description: e.message }),
+  });
+
   const inc = data?.incident;
 
   function exportReport() {
@@ -309,7 +328,24 @@ function ReviewSheet({
           <ScrollArea className="min-h-0 flex-1 scroll-thin">
             <div className="space-y-5 p-4 pr-6">
               {inc.isUrgent && inc.urgencyTags && (
-                <UrgentBanner tags={inc.urgencyTags} />
+                <div className="space-y-2">
+                  <UrgentBanner tags={inc.urgencyTags} />
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => clearUrgencyMut.mutate()}
+                      disabled={clearUrgencyMut.isPending}
+                    >
+                      {clearUrgencyMut.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ShieldOff className="h-4 w-4" />
+                      )}
+                      Mark not urgent
+                    </Button>
+                  </div>
+                </div>
               )}
 
               {inc.rawTranscript && (
