@@ -98,7 +98,7 @@ only needs `NEXT_PUBLIC_CONVEX_URL`.
 | `OPENAI_API_KEY`            | Convex                      | OpenAI Whisper provider.                                                   |
 | `OPENAI_WHISPER_MODEL`      | Convex (optional)           | Whisper model name (default: `whisper-1`).                                 |
 | `GEMINI_API_KEY`            | Convex                      | Google Gemini provider.                                                    |
-| `GEMINI_MODEL`              | Convex (optional)           | Gemini model (default: `gemini-2.0-flash`).                                |
+| `GEMINI_MODEL`              | Convex (optional)           | Gemini model (default: `gemini-3.5-flash`).                                |
 | `LLM_API_BASE`              | Convex                      | Base URL of an OpenAI-compatible chat-completions endpoint.                |
 | `LLM_API_KEY`               | Convex                      | API key for the LLM endpoint.                                              |
 | `LLM_MODEL`                 | Convex (optional)           | Model name (default: `gpt-4o-mini`).                                        |
@@ -156,7 +156,7 @@ a different provider.
    npx convex env add LLM_API_BASE            https://api.openai.com/v1
    npx convex env add LLM_API_KEY             sk-...
    # optional:
-   npx convex env add GEMINI_MODEL            gemini-2.0-flash
+   npx convex env add GEMINI_MODEL            gemini-3.5-flash
    npx convex env add LLM_MODEL               gpt-4o-mini
    npx convex env add OPENAI_WHISPER_MODEL    whisper-1
    ```

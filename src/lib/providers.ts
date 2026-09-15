@@ -11,7 +11,7 @@
 // Environment variables:
 //   OPENAI_API_KEY   - Bearer token for https://api.openai.com/v1/audio/transcriptions
 //   GEMINI_API_KEY   - API key for https://generativelanguage.googleapis.com
-//   GEMINI_MODEL     - Gemini model id; defaults to "gemini-3.8-flash"
+//   GEMINI_MODEL     - Gemini model id; defaults to "gemini-3.5-flash"
 //                      (the owner's required model for the benchmark lane).
 //
 // MUST only be imported in server-side code (route handlers / convex actions).
@@ -145,13 +145,13 @@ export async function transcribeWithWhisper(
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Google Gemini (gemini-3.8-flash)
+// Google Gemini (gemini-3.5-flash)
 // ──────────────────────────────────────────────────────────────────────────
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
 /** Default model - the owner's required model for the Gemini benchmark lane.
  *  Override with the GEMINI_MODEL env var. */
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
 export function isGeminiConfigured(): boolean {
   return !!GEMINI_API_KEY && GEMINI_API_KEY.length > 8;

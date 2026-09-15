@@ -231,7 +231,7 @@ function ProviderStatus() {
       />
       <Pill
         ok={status.gemini?.configured}
-        label={`Gemini (${status.gemini?.model ?? "gemini-3.8-flash"})`}
+        label={`Gemini (${status.gemini?.model ?? "gemini-3.5-flash"})`}
         okText={status.gemini?.configured ? "configured" : "no key"}
       />
       <Pill ok label="z-ai ASR" okText="fallback" />

@@ -49,7 +49,9 @@ dev.log
 dev.out.log
 test
 prompt
-!download/**
+/download/
+/db/
+/worklog.md
 
 server.log
 # Skills directory

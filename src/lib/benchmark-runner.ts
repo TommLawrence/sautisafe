@@ -71,7 +71,7 @@ export async function runBenchmarkLanes(
     }
   }
 
-  // Lane 3 - Gemini (gemini-3.8-flash).
+  // Lane 3 - Gemini (gemini-3.5-flash).
   if (!isGeminiConfigured()) {
     results.push(emptyLane("gemini", "GEMINI_API_KEY not set - add it to .env to run the real Gemini lane"));
   } else {

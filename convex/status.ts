@@ -11,7 +11,7 @@ export const get = query({
     whisper: { configured: Boolean(process.env.OPENAI_API_KEY) },
     gemini: {
       configured: Boolean(process.env.GEMINI_API_KEY),
-      model: process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
+      model: process.env.GEMINI_MODEL ?? "gemini-3.5-flash",
     },
     pwa: true,
     offlineDrafts: true,
