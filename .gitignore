@@ -52,6 +52,15 @@ prompt
 /download/
 /db/
 /worklog.md
+/Caddyfile
+/examples/
+/mini-services/
+/prisma/
+/tests/
+/docs/codebase-merge-review.md
+/docs/intron-api-spec.md
+/convex/MIGRATION.md
+/convex/README.md
 
 server.log
 # Skills directory
