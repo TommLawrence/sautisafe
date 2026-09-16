@@ -10,7 +10,8 @@ export type IncidentStatus =
   | "review"
   | "submitted"
   | "escalated"
-  | "resolved";
+  | "resolved"
+  | "judge_review";
 
 export type SpeechProvider = "sahara" | "whisper" | "gemini" | "zai-asr";
 
@@ -36,6 +37,7 @@ export interface Incident {
   severity?: Severity | null;
   occurredAt?: string | null;
   status: IncidentStatus;
+  judgeLocked?: boolean;
   isUrgent: boolean;
   urgencyTags?: string[] | null;
   consentGiven: boolean;

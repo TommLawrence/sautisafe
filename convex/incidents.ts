@@ -202,6 +202,7 @@ export const createIncident = mutation({
       consentGiven: args.consentGiven,
       detectedLanguage: args.detectedLanguage,
       status: "draft",
+      judgeLocked: false,
       isUrgent: false,
       createdAt: now,
       updatedAt: now,
@@ -257,6 +258,9 @@ export const updateIncident = mutation({
   handler: async (ctx, args) => {
     const incident = await ctx.db.get(args.id);
     if (!incident) throw new Error(`Incident ${args.id} not found`);
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     // Build a partial patch — only fields the caller actually supplied.
     const patch: Partial<Doc<"incidents">> = {};
@@ -319,6 +323,9 @@ export const reviewIncident = mutation({
   handler: async (ctx, args) => {
     const incident = await ctx.db.get(args.id);
     if (!incident) throw new Error(`Incident ${args.id} not found`);
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     const now = Date.now();
     await ctx.db.patch(args.id, {
@@ -361,6 +368,9 @@ export const deleteIncident = mutation({
   handler: async (ctx, args) => {
     const incident = await ctx.db.get(args.id);
     if (!incident) throw new Error(`Incident ${args.id} not found`);
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     const [followUps, transcripts, auditEvents] = await Promise.all([
       ctx.db

@@ -58,6 +58,9 @@ export const createFollowUp = mutation({
     if (!incident) {
       throw new Error(`Incident ${args.incidentId} not found; cannot create follow-up.`);
     }
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     const now = Date.now();
     const followUpId = await ctx.db.insert("followUps", {
@@ -95,6 +98,11 @@ export const answerFollowUp = mutation({
   handler: async (ctx, args): Promise<Id<"followUps">> => {
     const followUp = await ctx.db.get(args.id);
     if (!followUp) throw new Error(`Follow-up ${args.id} not found`);
+    const incident = await ctx.db.get(followUp.incidentId);
+    if (!incident) throw new Error(`Incident ${followUp.incidentId} not found`);
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     const now = Date.now();
     await ctx.db.patch(args.id, {

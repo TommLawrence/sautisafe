@@ -67,6 +67,9 @@ export const addTranscript = mutation({
     if (!incident) {
       throw new Error(`Incident ${args.incidentId} not found; cannot store transcript.`);
     }
+    if (incident.judgeLocked) {
+      throw new Error("This report is locked while awaiting judge review.");
+    }
 
     const now = Date.now();
     const transcriptId = await ctx.db.insert("transcripts", {

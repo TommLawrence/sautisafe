@@ -66,6 +66,7 @@ export default defineSchema({
 
     // --- Risk + workflow state ---
     status: v.string(), // draft | extracted | review | submitted | escalated | resolved
+    judgeLocked: v.optional(v.boolean()), // immutable snapshot awaiting competition judging
     isUrgent: v.boolean(),
     urgencyTags: v.optional(v.string()), // JSON array string: ["fire","chemical",...]
     consentGiven: v.boolean(),

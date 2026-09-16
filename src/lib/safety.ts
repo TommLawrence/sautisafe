@@ -87,6 +87,7 @@ export const SEVERITIES = ["low", "medium", "high", "critical"] as const;
 export const INJURY_STATUSES = ["none", "minor", "serious", "unknown"] as const;
 export const INCIDENT_STATUSES = [
   "draft", "extracted", "review", "submitted", "escalated", "resolved",
+  "judge_review",
 ] as const;
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -96,6 +97,7 @@ export const STATUS_LABELS: Record<string, string> = {
   submitted: "Submitted",
   escalated: "Escalated",
   resolved: "Resolved",
+  judge_review: "Waiting for judge review",
 };
 
 export const SEVERITY_LABELS: Record<string, string> = {
@@ -120,6 +122,7 @@ export const STATUS_BADGE: Record<string, string> = {
   submitted: "bg-teal-100 text-teal-900 border-teal-300 dark:bg-teal-950 dark:text-teal-200 dark:border-teal-800",
   escalated: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800",
   resolved: "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800",
+  judge_review: "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-950 dark:text-violet-200 dark:border-violet-800",
 };
 
 export const SEVERITY_BADGE: Record<string, string> = {

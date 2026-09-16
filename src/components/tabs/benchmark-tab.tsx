@@ -26,7 +26,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileAudio,
-  Trash2,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -357,7 +356,6 @@ export function BenchmarkTab() {
 
 function BenchmarkHistory() {
   const [openId, setOpenId] = React.useState<string | null>(null);
-  const deleteBenchmarkRun = useConvexMutation(convexApi.benchmark.deleteBenchmarkRun);
   const data = useConvexQuery(convexApi.benchmark.listBenchmarkRuns, {}) as
     | Record<string, any>[]
     | undefined;
@@ -431,26 +429,7 @@ function BenchmarkHistory() {
                         ))}
                       </div>
                     )}
-                    <div className="mt-3 flex items-center justify-end gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        aria-label={`Delete benchmark ${run.referenceNo}`}
-                        onClick={async () => {
-                          if (!window.confirm(`Delete benchmark ${run.referenceNo}?`)) return;
-                          try {
-                            await deleteBenchmarkRun({ id: run.id });
-                            toast.success("Benchmark deleted");
-                          } catch (error) {
-                            toast.error("Could not delete benchmark", {
-                              description: error instanceof Error ? error.message : "Unknown error",
-                            });
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="mt-3 flex items-center justify-end">
                       <Button
                         size="icon"
                         variant="ghost"

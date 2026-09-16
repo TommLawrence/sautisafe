@@ -327,7 +327,7 @@ function ReviewSheet({
         ) : (
           <ScrollArea className="min-h-0 flex-1 scroll-thin">
             <div className="space-y-5 p-4 pr-6">
-              {inc.isUrgent && inc.urgencyTags && (
+              {inc.isUrgent && inc.urgencyTags && !inc.judgeLocked && (
                 <div className="space-y-2">
                   <UrgentBanner tags={inc.urgencyTags} />
                   <div className="flex justify-end">
@@ -348,14 +348,29 @@ function ReviewSheet({
                 </div>
               )}
 
+              {inc.judgeLocked && (
+                <div className="rounded-lg border border-violet-300 bg-violet-50 p-3 text-sm text-violet-950 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-100">
+                  <p className="font-semibold">Waiting for judge review</p>
+                  <p className="mt-1 text-xs opacity-80">
+                    This submitted report is read-only. Its audio, transcript, benchmark data, and review record cannot be changed.
+                  </p>
+                </div>
+              )}
+
               {inc.rawTranscript && (
                 <Section title="Transcript" icon={<FileAudio className="h-4 w-4" />}>
-                  <EditableTranscript
-                    incidentId={inc.id}
-                    text={inc.rawTranscript}
-                    hasAudio={!!inc.audioStoragePath}
-                    onBenchmarked={onClose}
-                  />
+                  {inc.judgeLocked ? (
+                    <p className="whitespace-pre-wrap rounded-md bg-muted/40 p-3 text-sm leading-relaxed">
+                      {inc.rawTranscript}
+                    </p>
+                  ) : (
+                    <EditableTranscript
+                      incidentId={inc.id}
+                      text={inc.rawTranscript}
+                      hasAudio={!!inc.audioStoragePath}
+                      onBenchmarked={onClose}
+                    />
+                  )}
                 </Section>
               )}
 
@@ -441,13 +456,14 @@ function ReviewSheet({
                     <Input
                       id="reviewer"
                       value={reviewer}
+                      disabled={inc.judgeLocked}
                       onChange={(e) => setReviewer(e.target.value)}
                       placeholder="e.g. Supervisor / Safety officer"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Decision</Label>
-                    <Select value={nextStatus} onValueChange={(v) => setNextStatus(v as IncidentStatus)}>
+                    <Select disabled={inc.judgeLocked} value={nextStatus} onValueChange={(v) => setNextStatus(v as IncidentStatus)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -465,6 +481,7 @@ function ReviewSheet({
                   <Textarea
                     id="notes"
                     value={notes}
+                    disabled={inc.judgeLocked}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={4}
                     placeholder="Corrective action, follow-up assigned, confirmation that equipment was inspected by a qualified person…"
@@ -484,7 +501,7 @@ function ReviewSheet({
               <Download className="h-4 w-4" />
               Export (.md)
             </Button>
-            <div className="flex gap-2">
+            {!inc?.judgeLocked && <div className="flex gap-2">
               {nextStatus === "escalated" ? (
                 <Button
                   variant="destructive"
@@ -524,7 +541,7 @@ function ReviewSheet({
                   Save review
                 </Button>
               )}
-            </div>
+            </div>}
           </div>
         </SheetFooter>
       </SheetContent>
