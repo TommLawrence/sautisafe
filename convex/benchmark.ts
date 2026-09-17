@@ -13,6 +13,10 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
+// Benchmark evidence collected before judging began stays immutable. New
+// benchmark runs, beginning 17 September 2026 in Kampala, may be deleted.
+const JUDGE_REVIEW_CUTOFF = 1789592400000;
+
 // ──────────────────────────────────────────────────────────────────────────
 // Queries
 // ──────────────────────────────────────────────────────────────────────────
@@ -83,7 +87,13 @@ export const saveBenchmarkRun = mutation({
 /** Delete a benchmark history record. Audio and incidents are left untouched. */
 export const deleteBenchmarkRun = mutation({
   args: { id: v.id("benchmarkRuns") },
-  handler: async (_ctx, { id }): Promise<Id<"benchmarkRuns">> => {
-    throw new Error(`Benchmark deletion is disabled during judge review (${id}).`);
+  handler: async (ctx, { id }): Promise<Id<"benchmarkRuns">> => {
+    const run = await ctx.db.get(id);
+    if (!run) throw new Error("Benchmark run not found.");
+    if (run.createdAt < JUDGE_REVIEW_CUTOFF) {
+      throw new Error("This benchmark is locked while awaiting judge review.");
+    }
+    await ctx.db.delete(id);
+    return id;
   },
 });

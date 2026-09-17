@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   FileAudio,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -61,6 +62,8 @@ const PROVIDER_LABEL: Record<string, string> = {
   whisper: "Whisper",
   gemini: "Gemini",
 };
+
+const JUDGE_REVIEW_CUTOFF = new Date("2026-09-17T00:00:00+03:00").getTime();
 
 export function BenchmarkTab() {
   const [audioFile, setAudioFile] = React.useState<File | null>(null);
@@ -356,6 +359,8 @@ export function BenchmarkTab() {
 
 function BenchmarkHistory() {
   const [openId, setOpenId] = React.useState<string | null>(null);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const deleteBenchmarkRun = useConvexMutation(convexApi.benchmark.deleteBenchmarkRun);
   const data = useConvexQuery(convexApi.benchmark.listBenchmarkRuns, {}) as
     | Record<string, any>[]
     | undefined;
@@ -387,6 +392,7 @@ function BenchmarkHistory() {
           <div className="scroll-thin max-h-80 overflow-y-auto pr-1">
             <ul className="space-y-2">
               {runs.map((run) => {
+                const isJudgeLocked = new Date(run.createdAt).getTime() < JUDGE_REVIEW_CUTOFF;
                 const real = run.results.filter((r) => !r.simulated);
                 const avgWer =
                   real.length > 0
@@ -429,7 +435,35 @@ function BenchmarkHistory() {
                         ))}
                       </div>
                     )}
-                    <div className="mt-3 flex items-center justify-end">
+                    <div className="mt-3 flex items-center justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive disabled:text-muted-foreground"
+                        disabled={isJudgeLocked || deletingId === run.id}
+                        title={isJudgeLocked ? "Locked while awaiting judge review" : "Delete benchmark"}
+                        aria-label={isJudgeLocked ? "Benchmark locked while awaiting judge review" : "Delete benchmark"}
+                        onClick={async () => {
+                          setDeletingId(run.id);
+                          try {
+                            await deleteBenchmarkRun({ id: run.id as any });
+                            if (openId === run.id) setOpenId(null);
+                            toast.success("Benchmark deleted");
+                          } catch (error) {
+                            toast.error("Could not delete benchmark", {
+                              description: error instanceof Error ? error.message : "Please try again",
+                            });
+                          } finally {
+                            setDeletingId(null);
+                          }
+                        }}
+                      >
+                        {deletingId === run.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
